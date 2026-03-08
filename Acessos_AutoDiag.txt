@@ -1,0 +1,13 @@
+Acessos AutoDiag AI PRO
+Link da Aplicação: https://autodiag-oficial.vercel.app/
+
+--- ACESSO PARA OFICINAS / MECÂNICOS ---
+Apenas precisam de usar o Código Secreto de Oficina configurado:
+
+Código de Acesso: OFICINA-TESTE-AI
+
+--- ACESSO ADMIN (SUPERVISOR) ---
+Caso tenha ativado a área de administração para gerir oficinas:
+
+Email: admin@autodiag.pt
+Password: admin

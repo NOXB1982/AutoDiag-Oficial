@@ -19,36 +19,41 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return null
                 }
 
-                const user = await prisma.user.findUnique({
-                    where: { email: credentials.email as string },
-                })
+                try {
+                    const user = await prisma.user.findUnique({
+                        where: { email: credentials.email as string },
+                    })
 
-                if (!user || !user.password) {
-                    return null
-                }
-
-                const isPasswordValid = await bcrypt.compare(
-                    credentials.password as string,
-                    user.password
-                )
-
-                if (!isPasswordValid) {
-                    return null
-                }
-
-                await prisma.user.update({
-                    where: { id: user.id },
-                    data: {
-                        lastLogin: new Date(),
-                        lastDevice: credentials.device ? String(credentials.device) : null
+                    if (!user || !user.password) {
+                        return null
                     }
-                })
 
-                return {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
+                    const isPasswordValid = await bcrypt.compare(
+                        credentials.password as string,
+                        user.password
+                    )
+
+                    if (!isPasswordValid) {
+                        return null
+                    }
+
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: {
+                            lastLogin: new Date(),
+                            lastDevice: credentials.device ? String(credentials.device) : null
+                        }
+                    })
+
+                    return {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                    }
+                } catch (error) {
+                    console.error("AUTH ERROR DETECTED:", error);
+                    return null;
                 }
             },
         }),
