@@ -7,13 +7,20 @@ import { Activity, Shield, Car, Settings } from "lucide-react"
 export function SidebarNav({ role }: { role?: string }) {
     const pathname = usePathname()
 
-    const navItems = [
+    let navItems = [
         { name: "Análises", href: "/", icon: Activity },
         { name: "Viaturas", href: "/viaturas", icon: Car },
         { name: "Ajustes", href: "/ajustes", icon: Settings },
     ]
 
-    if (role === "SUPER_ADMIN") {
+    // Override the whole menu if in the admin route section and user is SUPER_ADMIN
+    if (pathname.startsWith("/admin") && role === "SUPER_ADMIN") {
+        navItems = [
+            { name: "Visão Geral", href: "/admin", icon: Shield },
+            { name: "Todas as Análises", href: "/admin/analyses", icon: Activity },
+            { name: "Global de Viaturas", href: "/admin/vehicles", icon: Car },
+        ]
+    } else if (role === "SUPER_ADMIN") {
         navItems.push({ name: "Administração", href: "/admin", icon: Shield })
     }
 
