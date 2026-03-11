@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,15 +9,14 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  email      String   @unique
-  password   String
-  name       String?
-  role       String   @default("MECHANIC") // "SUPER_ADMIN" or "MECHANIC"
-  createdAt  DateTime @default(now())
-  lastLogin  DateTime?
-  lastDevice String?
-
+  id          String       @id @default(cuid())
+  email       String       @unique
+  password    String
+  name        String?
+  role        String       @default("MECHANIC")
+  createdAt   DateTime     @default(now())
+  lastLogin   DateTime?
+  lastDevice  String?
   diagnostics Diagnostic[]
 }
 
@@ -28,9 +24,26 @@ model Diagnostic {
   id         String   @id @default(cuid())
   userId     String
   vehicle    String
-  parameters String   // Stored as JSON string
+  parameters String
   diagnosis  String
   createdAt  DateTime @default(now())
-
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model diagnostics {
+  id               Int       @id @default(autoincrement())
+  vin_number       String?
+  error_code       String?
+  report_text      String?
+  repair_time      String?
+  difficulty_level String?
+  was_successful   Boolean?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model users {
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  password String
+  role     String? @default("user")
 }
