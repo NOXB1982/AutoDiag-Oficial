@@ -4,23 +4,30 @@ import { Car, Hash, Calendar, ArrowRight } from "lucide-react"
 export const dynamic = "force-dynamic"
 
 export default async function AdminVehiclesPage() {
-    // Busca agrupada das viaturas usando count
-    const vehicleStats = await prisma.diagnostic.groupBy({
-        by: ['vehicle'],
-        _count: {
-            id: true
-        },
-        _max: {
-            createdAt: true
-        },
-        orderBy: {
-            _count: {
-                id: 'desc'
-            }
-        }
-    })
+    let vehicleStats: any = []
+    let errorMsg: string | null = null
 
-    const totalUniqueVehicles = vehicleStats.filter(v => v.vehicle && v.vehicle.trim() !== "" && v.vehicle !== "Veículo não especificado").length
+    try {
+        vehicleStats = await prisma.diagnostic.groupBy({
+            by: ['vehicle'],
+            _count: {
+                id: true
+            },
+            _max: {
+                createdAt: true
+            },
+            orderBy: {
+                _count: {
+                    id: 'desc'
+                }
+            }
+        })
+    } catch (error) {
+        console.error("Erro ao agrupar viaturas:", error)
+        errorMsg = "Houve um problema a ligar à base de dados para ler as viaturas."
+    }
+
+    const totalUniqueVehicles = vehicleStats?.filter((v: any) => v?.vehicle && typeof v.vehicle === 'string' && v.vehicle.trim() !== "" && v.vehicle !== "Veículo não especificado").length || 0
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto pb-20">
@@ -51,7 +58,7 @@ export default async function AdminVehiclesPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-950">
-                            {vehicleStats.map((stat, idx) => {
+                            {vehicleStats.map((stat: any, idx: number) => {
                                 const isValid = stat.vehicle && stat.vehicle.trim() !== "" && stat.vehicle !== "Veículo não especificado"
                                 if (!isValid) return null
 
@@ -83,6 +90,20 @@ export default async function AdminVehiclesPage() {
                                     </tr>
                                 )
                             })}
+                            {errorMsg && (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-10 text-center text-red-500 font-medium">
+                                        {errorMsg}
+                                    </td>
+                                </tr>
+                            )}
+                            {!errorMsg && vehicleStats?.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-10 text-center text-gray-500">
+                                        Nenhuma viatura registada no sistema até ao momento.
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

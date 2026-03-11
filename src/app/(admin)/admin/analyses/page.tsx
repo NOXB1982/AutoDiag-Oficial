@@ -4,19 +4,27 @@ import { Activity, Car, Calendar, Info, Cpu, FileText } from "lucide-react"
 export const dynamic = "force-dynamic"
 
 export default async function AdminAnalysesPage() {
-    const analyses = await prisma.diagnostic.findMany({
-        orderBy: {
-            createdAt: 'desc'
-        },
-        include: {
-            user: {
-                select: {
-                    name: true,
-                    email: true
+    let analyses: any[] = []
+    let errorMsg: string | null = null
+
+    try {
+        analyses = await prisma.diagnostic.findMany({
+            orderBy: {
+                createdAt: 'desc'
+            },
+            include: {
+                user: {
+                    select: {
+                        name: true,
+                        email: true
+                    }
                 }
             }
-        }
-    })
+        })
+    } catch (error) {
+        console.error("Erro ao carregar análises:", error)
+        errorMsg = "Houve um problema a ligar à base de dados. Tente novamente."
+    }
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto pb-20">
@@ -48,8 +56,10 @@ export default async function AdminAnalysesPage() {
                                         <td className="px-6 py-4 text-gray-500 dark:text-gray-400 whitespace-nowrap">
                                             <div className="flex items-center gap-1.5">
                                                 <Calendar className="h-4 w-4" />
-                                                <span>{new Date(analysis.createdAt).toLocaleDateString('pt-PT')}</span>
-                                                <span className="text-xs ml-1 opacity-60">{new Date(analysis.createdAt).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                <span>{analysis.createdAt ? new Date(analysis.createdAt).toLocaleDateString('pt-PT') : '-'}</span>
+                                                <span className="text-xs ml-1 opacity-60">
+                                                    {analysis.createdAt ? new Date(analysis.createdAt).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                </span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
@@ -86,7 +96,14 @@ export default async function AdminAnalysesPage() {
                                     </tr>
                                 )
                             })}
-                            {analyses.length === 0 && (
+                            {errorMsg && (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-10 text-center text-red-500 font-medium">
+                                        {errorMsg}
+                                    </td>
+                                </tr>
+                            )}
+                            {!errorMsg && analyses?.length === 0 && (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
                                         Nenhuma análise registada no sistema.
