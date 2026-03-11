@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Cpu, Search, AlertCircle, CheckCircle2, Info, ChevronDown, ChevronUp, LogOut, XCircle, AlertTriangle, Activity } from "lucide-react"
+import { Cpu, Search, AlertCircle, CheckCircle2, Info, ChevronDown, ChevronUp, LogOut, XCircle, AlertTriangle, Activity, ArrowLeft } from "lucide-react"
 import { CameraUpload, type DiagnosticResult } from "@/components/camera-upload"
 import { saveDiagnostic } from "@/app/actions/diagnostics"
 import { signOut } from "next-auth/react"
@@ -87,14 +87,28 @@ export function DashboardClient({ user }: { user: { name?: string | null, email?
     return (
         <div className="mx-auto max-w-5xl p-6 lg:p-8 space-y-8">
             <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3">
-                        Painel de Diagnóstico
-                        <span className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider">{user.name || user.email}</span>
-                    </h1>
-                    <p className="text-gray-500 dark:text-gray-400">
-                        Bem-vindo ao AutoDiag AI. Fotografe o ecrã do seu scanner OBD2 para análise técnica.
-                    </p>
+                <div className="flex items-start gap-4">
+                    {(activeType || result) && (
+                        <button
+                            onClick={() => {
+                                setActiveType(null)
+                                setResult(null)
+                            }}
+                            className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
+                            title="Voltar aos Modos de Diagnóstico"
+                        >
+                            <ArrowLeft className="h-5 w-5" />
+                        </button>
+                    )}
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3">
+                            Painel de Diagnóstico
+                            <span className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider">{user.name || user.email}</span>
+                        </h1>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            Bem-vindo ao AutoDiag AI. Fotografe o ecrã do seu scanner OBD2 ou osciloscópio para análise técnica.
+                        </p>
+                    </div>
                 </div>
                 <button
                     onClick={() => signOut({ callbackUrl: '/login' })}
@@ -147,12 +161,6 @@ export function DashboardClient({ user }: { user: { name?: string | null, email?
 
             {!result && activeType && (
                 <div className="space-y-4">
-                    <button
-                        onClick={() => setActiveType(null)}
-                        className="text-sm flex items-center gap-1 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
-                    >
-                        ← Voltar aos Modos de Diagnóstico
-                    </button>
                     <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900 flex flex-col items-center text-center justify-center min-h-[300px] border-dashed">
                         {activeType === "osciloscopio" ? (
                             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-purple-50 dark:bg-purple-900/20 mb-2 relative">
