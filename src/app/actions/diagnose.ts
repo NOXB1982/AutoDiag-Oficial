@@ -19,23 +19,37 @@ export async function diagnoseImage(base64Image: string, type: "obd" | "oscilosc
 Analisa esta imagem de um ecrã de osciloscópio ligada aos componentes de um motor automóvel.
 Primeiro, se visível na interface do software (no cabeçalho ou nas abas), tenta identificar o Veículo ou o Canal do componente (ex: Injetor 1, Sensor Cambota). Se não for visível, escreve "Veículo não especificado".
 Depois, extrai os parâmetros visíveis na imagem: ciclo de trabalho (PWM), tensão máxima (picos de tensão), frequência, e identifica padrões de ondas típicos (ex: sinais de sensores Hall, indutivos, piezo).
-Para cada parâmetro ou padrão extraído, gera uma explicação curta respondendo a: 
-1) O que é? (ex: Pico de tensão do injetor)
-2) O que significa este valor? (Compara a onda/valor lido com os valores teóricos de referência, ex: 'Pico de tensão de 80V num injetor piezo é normal').
-3) O que verificar? (Causas prováveis de anomalias na onda: resistência elevada, curto-circuito, módulo de comando).
+
+DIRETRIZES DE DIAGNÓSTICO AVANÇADO:
+1. Foco em Atuadores: Sempre que detetares um sinal de atuador (PWM), analisa obrigatoriamente o Duty Cycle e a Frequência (Hz).
+2. Diagnóstico Comparativo: A explicação do valor deve usar lógica mecânica avançada (ex: 'Um Duty Cycle de 5% na EGR ao ralenti indica que a válvula está fechada, o que é o esperado. Se subir para 50% sem aceleração, há um erro de comando.').
+3. Identificação de Falhas Físicas: Procura ativamente por "picos de tensão anormais" ou deformações que indiquem desgaste na solenoide (indutância comprometida) ou resistência excessiva nos contactos/cablagem.
+4. Linguagem Técnica Pedagógica: Sê direto e curto, mas fornece SEMPRE valores de referência como argumento (ex: 'O tempo de injeção de 2.5ms é ideal para este regime', ou 'O pico de indução primária deve atingir cerca de 80V a 100V num injetor deste tipo').
+
+Para cada parâmetro ou padrão extraído, responde exatamente no formato pedido:
+1) O que é? (O nome técnico da grandeza elétrica/onda).
+2) O que significa este valor? (Aplicação das Diretrizes 2 e 4 - comparação técnica com valores ideais).
+3) O que verificar? (Causas prováveis, aplicando a Diretriz 3 - diagnóstico de hardware, módulo ou resistências).
 Classifica o estado do sinal como "ok" (verde, onda padrão normal), "warning" (amarelo, onda com ligeiro ruído ou desvio), ou "error" (vermelho, onda totalmente deformada ou fora de escala).
-Faz o diagnóstico global descrevendo se o sinal elétrico ou do sensor se encontra dentro da normalidade para esse tipo de sistema de injeção/ignição.
-IMPORTANTE: Usa terminologia técnica de eletrónica automóvel em Português de Portugal.
+Faz o diagnóstico global descrevendo se o sinal elétrico se encontra dentro da normalidade para o sistema injetado/ignição.
+IMPORTANTE: Usa terminologia técnica de eletrónica automóvel estrita em Português de Portugal.
 `;
         } else {
             prompt = `
 Primeiro, lê o cabeçalho no topo da imagem para identificar o Veículo (Marca/Modelo/Ano/Motor).
-Nas linhas seguintes, extrai todos os parâmetros técnicos visíveis no resto do ecrã do scanner OBD.
+Nas linhas seguintes, extrai todos os parâmetros técnicos visíveis no resto do ecrã do scanner OBD2.
+
+DIRETRIZES TÉCNICAS (Modo Scanner):
+1. Foco em Atuadores & Regimes: Ao leres Duty Cycle, Posições (%) ou Pressões, correlaciona essa leitura com o estado de Funcionamento do motor se lido (ex: Ralenti, Rotação Alta).
+2. Diagnóstico Comparativo: Explica o significado prático. Ex: 'Um Duty Cycle de 5% na EGR ao ralenti indica válvula fechada (normal). 50% em ralenti aponta para erro de comando ou falha da válvula.'
+3. Falhas Físicas: Sugere avaliações elétricas/físicas reais (ex: medir continuidade se ler 0V permanente ou resistência alta).
+4. Linguagem Pedagógica: Curta, com valores de referência ideais inseridos (ex: 'Pressão de Rail em 250 bar (25 MPa) é perfeita para ralenti de common-rail.').
+
 Para cada parâmetro extraído (ex: EGR Duty Cycle, Turbo Boost), gera uma explicação curta respondendo a: 
-1) O que é? 
-2) O que significa este valor? (Comparando o valor lido com os valores ideais do fabricante)
-3) O que verificar? (Causas prováveis: cablagem, fuga de vácuo, etc).
-Classifica o estado do parâmetro como "ok" (verde, dentro do esperado), "warning" (amarelo, fora do ideal leve), ou "error" (vermelho, erro grave).
+1) O que é?
+2) O que significa este valor? (Aplicação da Diretriz 2 e 4 - Comparar com fábrica).
+3) O que verificar? (Aplicação da Diretriz 3 - cablagem, fuga de vácuo, fusíveis, relés, avaria mecânica).
+Classifica o estado do parâmetro como "ok", "warning", ou "error".
 Faz o diagnóstico comparativo global baseado nos dados técnicos oficiais desse motor.
 IMPORTANTE: Usa terminologia técnica de mecânica em Português de Portugal (ex: 'centralina', 'gasóleo', 'borboleta', 'coletor', 'ralenti').
 `;
