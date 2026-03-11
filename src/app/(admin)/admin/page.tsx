@@ -1,6 +1,7 @@
 import { getAdminDashboardStats } from "@/app/actions/admin"
 import { CreateWorkshopModal } from "@/components/create-workshop-modal"
 import { Users, Activity, Wrench } from "lucide-react"
+import { DeleteWorkshopButton } from "@/components/delete-workshop-button"
 
 export default async function AdminDashboardPage() {
     const stats = await getAdminDashboardStats()
@@ -56,7 +57,8 @@ export default async function AdminDashboardPage() {
                                 <th scope="col" className="px-6 py-4 text-center">Data Adesão</th>
                                 <th scope="col" className="px-6 py-4 text-center">Último Acesso</th>
                                 <th scope="col" className="px-6 py-4">Dispositivo</th>
-                                <th scope="col" className="px-6 py-4 text-right">Diagnósticos Lidos</th>
+                                <th scope="col" className="px-6 py-4 text-center">Diagnósticos Lidos</th>
+                                <th scope="col" className="px-6 py-4 text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-950">
@@ -77,16 +79,21 @@ export default async function AdminDashboardPage() {
                                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400 text-xs truncate max-w-[200px]" title={workshop.lastDevice || ""}>
                                         {workshop.lastDevice || '-'}
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-center">
                                         <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-bold text-xs ring-1 ring-inset ring-blue-600/20 dark:ring-blue-500/20">
                                             {workshop._count.diagnostics}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex justify-end">
+                                            <DeleteWorkshopButton userId={workshop.id} userName={workshop.name || workshop.email} />
                                         </div>
                                     </td>
                                 </tr>
                             ))}
                             {stats.workshopsWithStats.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
+                                    <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
                                         Nenhuma oficina registada ainda. Clique em "Nova Oficina" para começar.
                                     </td>
                                 </tr>

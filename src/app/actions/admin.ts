@@ -69,3 +69,26 @@ export async function getAdminDashboardStats() {
 
     return { totalWorkshops, totalDiagnostics, workshopsWithStats }
 }
+
+export async function deleteMechanicUser(userId: string) {
+    const session = await auth()
+
+    if (!session || session.user?.role !== "SUPER_ADMIN") {
+        throw new Error("Não tem permissão para remover utilizadores.")
+    }
+
+    if (!userId) {
+        throw new Error("ID de utilizador inválido.")
+    }
+
+    try {
+        await prisma.user.delete({
+            where: { id: userId }
+        })
+        revalidatePath("/admin")
+        return { success: true }
+    } catch (error) {
+        console.error("Erro ao apagar utilizador:", error)
+        throw new Error("Ocorreu um erro ao apagar a oficina.")
+    }
+}
