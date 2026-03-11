@@ -1,17 +1,12 @@
 const { PrismaClient } = require('@prisma/client')
-const bcrypt = require('bcryptjs')
-
 const prisma = new PrismaClient()
 
-async function test() {
-    const u = await prisma.user.findUnique({
-        where: { email: 'admin@autodiag.pt' }
-    })
-    if (!u) {
-        return console.log('User not found')
-    }
-    console.log('Valid:', await bcrypt.compare('admin', u.password))
-    console.log(u)
+async function main() {
+  const users = await prisma.user.findMany()
+  console.log("Users in DB:", users.map(u => ({ id: u.id, email: u.email })))
+  
+  const diags = await prisma.diagnostic.count()
+  console.log("Diagnostics recorded:", diags)
 }
 
-test().finally(() => prisma.$disconnect())
+main().catch(console.error).finally(() => prisma.$disconnect())
