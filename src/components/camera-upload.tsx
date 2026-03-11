@@ -22,9 +22,10 @@ export type DiagnosticResult = {
 
 interface CameraUploadProps {
     onResult: (result: DiagnosticResult) => void;
+    type?: "obd" | "osciloscopio";
 }
 
-export function CameraUpload({ onResult }: CameraUploadProps) {
+export function CameraUpload({ onResult, type = "obd" }: CameraUploadProps) {
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [isProcessing, setIsProcessing] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -38,7 +39,7 @@ export function CameraUpload({ onResult }: CameraUploadProps) {
 
         try {
             const base64Image = await processImage(file)
-            const result = await diagnoseImage(base64Image)
+            const result = await diagnoseImage(base64Image, type)
             onResult(result)
         } catch (err: any) {
             setError(err.message || "Ocorreu um erro ao processar a imagem. Confirme a GEMINI_API_KEY no .env.local")
@@ -105,17 +106,17 @@ export function CameraUpload({ onResult }: CameraUploadProps) {
             <button
                 onClick={triggerFileInput}
                 disabled={isProcessing}
-                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-4 text-base font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed group w-full sm:w-auto mt-4"
+                className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-lg px-6 py-4 text-base font-semibold text-white shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed group w-full sm:w-auto mt-4 ${type === 'osciloscopio' ? 'bg-purple-600 hover:bg-purple-500 focus-visible:outline-purple-600' : 'bg-blue-600 hover:bg-blue-500 focus-visible:outline-blue-600'}`}
             >
                 {isProcessing ? (
                     <>
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        A processar reflexos... a analisar com IA...
+                        {type === 'osciloscopio' ? 'A processar onda... a analisar com IA...' : 'A processar reflexos... a analisar com IA...'}
                     </>
                 ) : (
                     <>
                         <Camera className="h-5 w-5 transition-transform group-hover:scale-110" />
-                        Tirar Foto ao Ecrã (OBD)
+                        {type === 'osciloscopio' ? 'Tirar Foto à Onda (Osciloscópio)' : 'Tirar Foto ao Ecrã (OBD)'}
                     </>
                 )}
             </button>

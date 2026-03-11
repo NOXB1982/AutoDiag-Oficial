@@ -3,7 +3,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
-export async function saveDiagnostic(vehicle: string, parameters: any, diagnosis: string) {
+export async function saveDiagnostic(vehicle: string, parameters: any, diagnosis: string, type: string = "obd") {
     const session = await auth()
 
     if (!session || !session.user?.id) {
@@ -14,6 +14,7 @@ export async function saveDiagnostic(vehicle: string, parameters: any, diagnosis
         await prisma.diagnostic.create({
             data: {
                 userId: session.user.id,
+                type,
                 vehicle,
                 parameters: JSON.stringify(parameters),
                 diagnosis

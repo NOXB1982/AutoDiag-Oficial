@@ -23,6 +23,7 @@ model User {
 model Diagnostic {
   id         String   @id @default(cuid())
   userId     String
+  type       String   @default("obd")
   vehicle    String
   parameters String
   diagnosis  String

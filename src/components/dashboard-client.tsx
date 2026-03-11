@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Cpu, Search, AlertCircle, CheckCircle2, Info, ChevronDown, ChevronUp, LogOut, XCircle, AlertTriangle } from "lucide-react"
+import { Cpu, Search, AlertCircle, CheckCircle2, Info, ChevronDown, ChevronUp, LogOut, XCircle, AlertTriangle, Activity } from "lucide-react"
 import { CameraUpload, type DiagnosticResult } from "@/components/camera-upload"
 import { saveDiagnostic } from "@/app/actions/diagnostics"
 import { signOut } from "next-auth/react"
@@ -70,12 +70,13 @@ function ParameterRow({ param }: { param: DiagnosticResult['parameters'][0] }) {
 export function DashboardClient({ user }: { user: { name?: string | null, email?: string | null, role?: string } }) {
     const [result, setResult] = useState<DiagnosticResult | null>(null)
     const [isSaving, setIsSaving] = useState(false)
+    const [activeType, setActiveType] = useState<"obd" | "osciloscopio" | null>(null)
 
     const handleResult = async (res: DiagnosticResult) => {
         setResult(res)
         setIsSaving(true)
         try {
-            await saveDiagnostic(res.vehicle, res.parameters, res.diagnosis)
+            await saveDiagnostic(res.vehicle, res.parameters, res.diagnosis, activeType || "obd")
         } catch (e) {
             console.error(e)
         } finally {
@@ -104,44 +105,84 @@ export function DashboardClient({ user }: { user: { name?: string | null, email?
                 </button>
             </header>
 
-            {!result && (
-                <div className="grid gap-6 md:grid-cols-2">
-                    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 group">
+            {!result && !activeType && (
+                <div className="grid gap-6 md:grid-cols-3">
+                    <button
+                        onClick={() => setActiveType("obd")}
+                        className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 group flex flex-col text-left hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
+                    >
                         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30 mb-4 transition-transform group-hover:scale-110">
                             <Search className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                         </div>
                         <h3 className="font-semibold text-lg mb-1">Inspeção Visual (Scanner)</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Use a câmera do seu dispositivo para captar e limpar reflexos de ecrãs de diagnóstico.</p>
-                    </div>
+                    </button>
 
-                    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 group">
+                    <button
+                        onClick={() => setActiveType("obd")}
+                        className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 group flex flex-col text-left hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
+                    >
                         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30 mb-4 transition-transform group-hover:scale-110">
                             <Cpu className="h-6 w-6 text-emerald-600 dark:text-emerald-500" />
                         </div>
                         <h3 className="font-semibold text-lg mb-1">Camada de Inteligência IA</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Extração estruturada de parâmetros com explicações técnicas de diagnóstico (Gemini).</p>
+                    </button>
+
+                    <button
+                        onClick={() => setActiveType("osciloscopio")}
+                        className="rounded-xl border border-purple-200 bg-white p-6 shadow-sm dark:border-purple-900/30 dark:bg-gray-900 group relative overflow-hidden flex flex-col text-left hover:border-purple-500 dark:hover:border-purple-500 transition-colors"
+                    >
+                        <div className="absolute -right-12 top-6 bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-500 dark:to-indigo-500 text-white text-[10px] font-bold px-12 py-1 rotate-45 shadow-sm tracking-wider z-10">
+                            ELITE
+                        </div>
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30 mb-4 transition-transform group-hover:scale-110 relative z-0">
+                            <Activity className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <h3 className="font-semibold text-lg mb-1 relative z-0">Mestre de Osciloscópio</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 relative z-0">Interpretação IA avançada de formas de onda e sinais elétricos. Capte o sinal do seu osciloscópio.</p>
+                    </button>
+                </div>
+            )}
+
+            {!result && activeType && (
+                <div className="space-y-4">
+                    <button
+                        onClick={() => setActiveType(null)}
+                        className="text-sm flex items-center gap-1 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+                    >
+                        ← Voltar aos Modos de Diagnóstico
+                    </button>
+                    <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900 flex flex-col items-center text-center justify-center min-h-[300px] border-dashed">
+                        {activeType === "osciloscopio" ? (
+                            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-purple-50 dark:bg-purple-900/20 mb-2 relative">
+                                <div className="absolute inset-0 rounded-full border-4 border-purple-500/20 animate-ping"></div>
+                                <Activity className="h-10 w-10 text-purple-600 dark:text-purple-400 relative z-10" />
+                            </div>
+                        ) : (
+                            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 mb-2 relative">
+                                <div className="absolute inset-0 rounded-full border-4 border-blue-500/20 animate-ping"></div>
+                                <Cpu className="h-10 w-10 text-blue-600 dark:text-blue-400 relative z-10" />
+                            </div>
+                        )}
+
+                        <CameraUpload onResult={handleResult} type={activeType} />
                     </div>
                 </div>
             )}
 
-            {!result ? (
-                <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900 flex flex-col items-center text-center justify-center min-h-[300px] border-dashed">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 mb-2 relative">
-                        <div className="absolute inset-0 rounded-full border-4 border-blue-500/20 animate-ping"></div>
-                        <Cpu className="h-10 w-10 text-blue-600 dark:text-blue-400 relative z-10" />
-                    </div>
-
-                    <CameraUpload onResult={handleResult} />
-                </div>
-            ) : (
+            {result && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
                             <CheckCircle2 className="h-6 w-6 text-green-500" />
-                            Viatura Entendida: {result.vehicle}
+                            {activeType === "osciloscopio" ? `Onda Entendida: ${result.vehicle}` : `Viatura Entendida: ${result.vehicle}`}
                         </h2>
                         <button
-                            onClick={() => setResult(null)}
+                            onClick={() => {
+                                setResult(null)
+                                setActiveType(null)
+                            }}
                             className="text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white transition-colors border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-lg shadow-sm"
                         >
                             Nova Análise OBD
@@ -155,7 +196,7 @@ export function DashboardClient({ user }: { user: { name?: string | null, email?
                             <div className="bg-gray-50 dark:bg-gray-800/80 px-5 py-4 border-b border-gray-200 dark:border-gray-800">
                                 <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                                     <Search className="h-5 w-5 text-blue-500" />
-                                    Parâmetros Técnicos Captados
+                                    {activeType === 'osciloscopio' ? 'Parâmetros Elétricos e Ondas' : 'Parâmetros Técnicos Captados'}
                                 </h3>
                             </div>
                             <div className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -174,7 +215,7 @@ export function DashboardClient({ user }: { user: { name?: string | null, email?
                             <div className="bg-amber-100 dark:bg-amber-900/30 px-5 py-4 border-b border-amber-200 dark:border-amber-800/40">
                                 <h3 className="font-semibold text-amber-900 dark:text-amber-400 flex items-center gap-2">
                                     <AlertCircle className="h-5 w-5" />
-                                    Diagnóstico do Motor
+                                    {activeType === 'osciloscopio' ? 'Diagnóstico do Circuito / Sensor' : 'Diagnóstico do Motor'}
                                 </h3>
                             </div>
                             <div className="p-5 text-amber-950 dark:text-amber-100/90 leading-relaxed text-sm whitespace-pre-wrap">
