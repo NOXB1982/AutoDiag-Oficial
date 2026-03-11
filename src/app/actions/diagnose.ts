@@ -36,22 +36,26 @@ IMPORTANTE: Usa terminologia técnica de eletrónica automóvel estrita em Portu
 `;
         } else {
             prompt = `
-Primeiro, lê o cabeçalho no topo da imagem para identificar o Veículo (Marca/Modelo/Ano/Motor).
-Nas linhas seguintes, extrai todos os parâmetros técnicos visíveis no resto do ecrã do scanner OBD2.
+Primeiro, lê o cabeçalho no topo da imagem para tentar identificar o Veículo (Marca/Modelo/Ano/Motor).
+Nas linhas seguintes, efetua o RECONHECIMENTO DE TABELA: Varre exaustivamente todas as linhas de parâmetros listadas no scanner de diagnóstico (ex: ecrãs Autel, TEXA, Launch).
 
-DIRETRIZES TÉCNICAS (Modo Scanner):
-1. Foco em Atuadores & Regimes: Ao leres Duty Cycle, Posições (%) ou Pressões, correlaciona essa leitura com o estado de Funcionamento do motor se lido (ex: Ralenti, Rotação Alta).
-2. Diagnóstico Comparativo: Explica o significado prático. Ex: 'Um Duty Cycle de 5% na EGR ao ralenti indica válvula fechada (normal). 50% em ralenti aponta para erro de comando ou falha da válvula.'
-3. Falhas Físicas: Sugere avaliações elétricas/físicas reais (ex: medir continuidade se ler 0V permanente ou resistência alta).
-4. Linguagem Pedagógica: Curta, com valores de referência ideais inseridos (ex: 'Pressão de Rail em 250 bar (25 MPa) é perfeita para ralenti de common-rail.').
+DIRETRIZES TÉCNICAS (Modo Scanner - Dicionário Técnico):
+1. Dicionário Técnico de Parâmetros: Para cada linha detetada no scanner deves dividir a explicação em três tópicos estritos:
+   - "O que é:" (Função básica do componente).
+   - "O que faz:" (Como atua ou o que indica no motor em tempo real).
+   - "Dica de Diagnóstico:" (O que significa se estiver muito alto ou muito baixo).
+2. Análise de Desvio: Cruza imediatamente qualquer discrepância se a máquina mostrar colunas de 'Alvo / Desired' contra 'Real / Actual'. Foca o teu diagnóstico na diferença entre as duas (ex: 'Alvo de Rail 300 bar, Real de 150 bar -> Pressão nominal não atingida, verificar bomba ou fugas').
+3. Estilo de Resposta Limpo: Usa sempre quebras de linha e formatação em tópicos (bullet points ou hífens) quer dentro das explicações da chave JSON, quer no campo que aloja o teu diagnóstico global, para que fique estético no telemóvel do mecânico.
+4. Classificação Rigorosa: Só dás estado "ok" se o valor real bater certo com o teórico ou alvo.
 
-Para cada parâmetro extraído (ex: EGR Duty Cycle, Turbo Boost), gera uma explicação curta respondendo a: 
+Para cada parâmetro extraído (ex: EGR Duty Cycle, Rail Pressure, Short Term Fuel Trim), responde exatamente neste formato:
 1) O que é?
-2) O que significa este valor? (Aplicação da Diretriz 2 e 4 - Comparar com fábrica).
-3) O que verificar? (Aplicação da Diretriz 3 - cablagem, fuga de vácuo, fusíveis, relés, avaria mecânica).
+2) O que faz?
+3) Dica de Diagnóstico e Análise do Desvio (Diretrizes 2 e 3).
+
 Classifica o estado do parâmetro como "ok", "warning", ou "error".
-Faz o diagnóstico comparativo global baseado nos dados técnicos oficiais desse motor.
-IMPORTANTE: Usa terminologia técnica de mecânica em Português de Portugal (ex: 'centralina', 'gasóleo', 'borboleta', 'coletor', 'ralenti').
+Faz o diagnóstico comparativo global em formato de tópicos (bullet points), listando os pontos-chave a verificar pela oficina no carro físico.
+IMPORTANTE: Usa terminologia técnica de reparação em Português de Portugal.
 `;
         }
 
