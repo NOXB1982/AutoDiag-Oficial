@@ -62,12 +62,12 @@ function ParameterRow({ param }: { param: DiagnosticResult['parameters'][0] }) {
     const [isOpen, setIsOpen] = useState(false)
 
     const StatusIcon =
-        param.status === 'error' ? XCircle :
+        param.status === 'error' ? AlertTriangle :
             param.status === 'warning' ? AlertTriangle :
                 CheckCircle2;
 
     const statusColor =
-        param.status === 'error' ? 'text-red-600 dark:text-red-500' :
+        param.status === 'error' ? 'text-red-500 animate-pulse' :
             param.status === 'warning' ? 'text-amber-600 dark:text-amber-500' :
                 'text-emerald-600 dark:text-emerald-500';
 
@@ -77,12 +77,26 @@ function ParameterRow({ param }: { param: DiagnosticResult['parameters'][0] }) {
                 <div className="flex items-start gap-3 flex-1">
                     <StatusIcon className={`h-5 w-5 shrink-0 mt-0.5 ${statusColor}`} />
                     <div className="flex-1">
-                        <span className="font-semibold text-gray-900 dark:text-gray-100 block">{param.name}</span>
+                        <div className="flex items-center gap-2">
+                            <span className="font-semibold text-gray-900 dark:text-gray-100 block">{param.name}</span>
+                            {param.status === 'error' && (
+                                <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 border border-red-200 dark:border-red-800">
+                                    <AlertTriangle className="h-3 w-3" /> ALERTA {">"}15%
+                                </span>
+                            )}
+                        </div>
                         <div className="flex flex-wrap items-center gap-2 mt-1">
-                            <span className="text-gray-900 dark:text-white font-mono font-bold text-base">{param.value}</span>
+                            <span className={`font-mono font-bold text-base ${param.status === 'error' ? 'text-red-600 dark:text-red-500 text-lg' : 'text-gray-900 dark:text-white'}`}>
+                                {param.value}
+                            </span>
                             <span className="text-gray-400 dark:text-gray-500 text-xs">/</span>
                             <span className="text-gray-500 dark:text-gray-400 font-mono text-sm" title="Valor Ideal">Ideal: {param.idealValue}</span>
                         </div>
+                        {param.status === 'error' && (
+                             <p className="text-red-600 dark:text-red-400/90 text-[11px] font-bold mt-1.5 flex items-center gap-1 bg-red-50/50 dark:bg-red-900/10 p-1.5 rounded-lg border border-red-100/50 dark:border-red-800/20">
+                                 <Info className="h-3 w-3 shrink-0" /> {param.explanation.meaning.split('\n')[0]}
+                             </p>
+                        )}
                     </div>
                 </div>
                 <div className="flex items-center gap-2">

@@ -51,11 +51,13 @@ PRIORIDADE MÁXIMA DE IDENTIFICAÇÃO:
 DIRETRIZES TÉCNICAS (CONTEXTO: ${contextVehicle || 'Nova Sessão'}):
 ${contextVehicle ? 'FOCO 100% EM DADOS: O veículo já está identificado. Concentra-te exclusivamente na extração de parâmetros técnicos e na comparação com valores ideais.' : ''}
 1. Dicionário de Parâmetros: Para cada linha, divide em: "O que é", "O que faz", "Dica de Diagnóstico".
-2. Análise de Desvio: Compara colunas 'Alvo / Nominal' vs 'Real / Medido'. Foca no desvio.
+2. REGRA DOS 15% (CRÍTICO): Compara o 'Valor Real' com o 'Valor Ideal'. 
+   - Se o desvio for SUPERIOR a 15% (para cima ou para baixo), classifica obrigatoriamente como "error".
+   - JUSTIFICAÇÃO: Se for "error", o campo "meaning" deve começar por uma nota de 1 linha explicando o desvio (ex: 'Pressão de turbo abaixo do esperado para 2500rpm').
 3. Estilo Limpo: Usa tópicos/bullet points para legibilidade total em tablets.
-4. Classificação: "ok" apenas se o valor real bater com o ideal/teórico.
+4. Classificação: "ok" apenas se o valor real bater com o ideal/teórico. "warning" para desvios leves (<15%). "error" para desvios >15%.
 
-Para cada parâmetro, responde: 1) O que é? 2) O que faz? 3) Dica e Desvio.
+Para cada parâmetro, responde: 1) O que é? 2) O que faz? 3) Justificação do Desvio.
 Classifica como "ok", "warning", ou "error". Diagnóstico global em tópicos detalhando o que a oficina deve verificar.
 IMPORTANTE: Terminologia técnica PT-PT.
 `;
