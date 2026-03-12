@@ -408,11 +408,34 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
                 </div>
             )}
 
-            {/* Multip-Photo Session View */}
+            {/* Multi-Photo Session View */}
             {activeSessionVehicle && !activeType && (
                 <div className="space-y-12 animate-in fade-in max-w-4xl mx-auto">
+                    
+                    {/* Integrated Capture Card (Same as main menu) */}
+                    <div className="grid gap-4 sm:gap-6">
+                        <button
+                            onClick={() => {
+                                setResult(null);
+                                setActiveType("obd");
+                            }}
+                            className="rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/50 p-6 lg:p-8 shadow-sm dark:border-blue-900/30 dark:bg-blue-900/10 group flex items-center gap-6 text-left hover:border-blue-500 dark:hover:border-blue-500 transition-all hover:bg-white dark:hover:bg-gray-950"
+                        >
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-500/30 transition-transform group-hover:scale-110">
+                                <Camera className="h-8 w-8 text-white" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-black text-xl lg:text-2xl mb-1 text-gray-900 dark:text-white">Adicionar Parâmetros / Erros</h3>
+                                <p className="text-sm lg:text-base text-gray-500 dark:text-gray-400 font-medium">Capture e analise novos dados para este veículo.</p>
+                            </div>
+                            <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Plus className="h-6 w-6" />
+                            </div>
+                        </button>
+                    </div>
+
                     {/* Render History from newest to oldest */}
-                    {activeSessionRecords.length === 0 && <p className="text-gray-500 text-center py-10">Sessão vazia.</p>}
+                    {activeSessionRecords.length === 0 && <p className="text-gray-500 text-center py-10">Inicie a análise utilizando o cartão acima.</p>}
                     
                     {activeSessionRecords.map((record, index) => {
                          let parameters = [];
