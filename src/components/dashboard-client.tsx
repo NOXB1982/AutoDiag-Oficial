@@ -163,16 +163,20 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
             if (dataResponse.success && dataResponse.diagnostic) {
                 setHistory(prev => [dataResponse.diagnostic as DiagnosticRecord, ...prev])
                 
-                // Continuous Capture Logic: If we just detected a VIN, trigger a new capture automatically
-                if (res.vin && !activeType) {
-                    // Feedback loop: Keep current result visible but allow adding more captures
-                    // The floating button will be visible because activeSessionVehicle is set
+                // Real-time Update Fix: If in a session, reset activeType and result so we see the history updated
+                if (activeSessionVehicle || res.vin) {
+                    setActiveType(null);
+                    setResult(null);
                 }
             }
         } catch (e) {
             console.error(e)
         } finally {
             setIsSaving(false)
+            // Ensure camera closes even on error if we are in a session
+            if (activeSessionVehicle) {
+                setActiveType(null);
+            }
         }
     }
 
@@ -461,18 +465,21 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
                 {activeSessionVehicle && !activeType && (
                     <div className="absolute bottom-8 right-8 lg:bottom-12 lg:right-12 z-30">
                         <button
-                            onClick={() => setActiveType("obd")} 
-                            className="flex items-center gap-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 shadow-2xl shadow-blue-500/40 hover:-translate-y-2 transition-all duration-300 font-bold group"
-                            title="Adicionar mais dados a esta viatura"
+                            onClick={() => {
+                                setResult(null); // Clear previous result view if any
+                                setActiveType("obd");
+                            }} 
+                            className="flex items-center gap-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 shadow-2xl shadow-blue-500/40 hover:-translate-y-2 transition-all duration-300 font-black group active:scale-95 border-2 border-blue-500/20"
+                            title="Nova Captura de Parâmetros"
                         >
                             <div className="relative">
-                                <Camera className="h-6 w-6 transition-transform group-hover:scale-110" />
-                                <div className="absolute -top-1 -right-1 bg-white text-blue-600 rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-black border border-blue-600 shadow-sm">
+                                <Camera className="h-7 w-7 transition-transform group-hover:scale-110" />
+                                <div className="absolute -top-1.5 -right-1.5 bg-white text-blue-600 rounded-full w-5 h-5 flex items-center justify-center text-[12px] font-black border-2 border-blue-600 shadow-md">
                                     +
                                 </div>
                             </div>
-                            <span className="hidden sm:inline text-lg">Nova Captura</span>
-                            <span className="sm:hidden">Capturar</span>
+                            <span className="hidden sm:inline text-xl tracking-tight">Nova Captura</span>
+                            <span className="sm:hidden text-lg">Capturar</span>
                         </button>
                     </div>
                 )}
