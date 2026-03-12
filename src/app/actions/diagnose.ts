@@ -41,8 +41,10 @@ IMPORTANTE: Terminologia técnica PT-PT.
 
 PRIORIDADE MÁXIMA DE IDENTIFICAÇÃO:
 1. VIN LOCK & DECODING: Tenta encontrar o VIN (17 caracteres). Se detetado, retorna-o no campo "vin". 
-   - IMPORTANTE: Usa o VIN e os dados visíveis para uma descodificação técnica detalhada. O campo "vehicle" deve conter "Marca Modelo Motorização Potência Ano (Código Motor)" (ex: "VW Golf VII 1.6 TDI 115cv 2018 (DGT)").
-   - Se não conseguires o código do motor, omite os parênteses. Se não houver VIN, tenta identificar o máximo de dados técnicos pela imagem.
+   - IMPORTANTE: O campo "vehicle" DEVE seguir rigorosamente o padrão: "[Marca] [Modelo] [Motor] - [Ano]" (ex: "VW Golf 1.6 TDI - 2018").
+   - EXTRAÇÃO OBRIGATÓRIA: Identifica obrigatoriamente Cilindrada e Motorização (ex: 2.0 BlueHDi, 1.3 CDTI).
+   - FALLBACK VISUAL: Se o VIN não for conclusivo para o motor, analisa o CONTEXTO VISUAL da foto (logótipos no motor, etiquetas no ecrã da máquina ou chassi) para confirmar a motorização exata.
+   - Se não houver VIN, tenta identificar o máximo de dados técnicos pela imagem mantendo o padrão de nome.
 2. TABELA DE DADOS: Varre exaustivamente todas as linhas do scanner (Autel, TEXA, etc).
 
 DIRETRIZES TÉCNICAS (CONTEXTO: ${contextVehicle || 'Nova Sessão'}):
