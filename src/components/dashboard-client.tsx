@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Cpu, Search, AlertCircle, CheckCircle2, Info, ChevronDown, ChevronUp, LogOut, XCircle, AlertTriangle, Activity, ArrowLeft, Menu, Plus } from "lucide-react"
+import { Cpu, Search, AlertCircle, CheckCircle2, Info, ChevronDown, ChevronUp, LogOut, XCircle, AlertTriangle, Activity, ArrowLeft, Menu, Plus, Camera } from "lucide-react"
 import { CameraUpload, type DiagnosticResult } from "@/components/camera-upload"
 import { saveDiagnostic } from "@/app/actions/diagnostics"
 import { signOut } from "next-auth/react"
@@ -145,12 +145,14 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
     }, [history, activeSessionVehicle]);
 
     const handleResult = async (res: DiagnosticResult) => {
-        // VIN-Lock Logic: If a VIN is detected and we aren't in a session, start one
-        if (res.vin && !activeSessionVehicle) {
-            setActiveSessionVehicle(res.vin);
+        // VIN-Lock Logic: If a VIN or descriptive vehicle is detected and we aren't in a session, start one
+        // We prioritize the descriptive name ('vehicle' field) if a VIN was detected
+        if ((res.vin || res.vehicle) && !activeSessionVehicle) {
+            const sessionName = res.vehicle || res.vin || "Veículo Desconhecido";
+            setActiveSessionVehicle(sessionName);
         }
 
-        const finalVehicleName = activeSessionVehicle || res.vin || res.vehicle || "Veículo Desconhecido";
+        const finalVehicleName = activeSessionVehicle || res.vehicle || res.vin || "Veículo Desconhecido";
         
         res.vehicle = finalVehicleName;
         setResult(res)
@@ -271,8 +273,8 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
                                     <h1 className="text-2xl lg:text-4xl font-black tracking-tight mb-2 flex flex-wrap items-center gap-3 text-gray-900 dark:text-white">
                                         {activeSessionVehicle ? (
                                             <>
-                                                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm lg:text-base font-bold animate-pulse">Sessão Ativa</span>
-                                                <span>Veículo: <span className="text-blue-600 dark:text-blue-400 font-mono">{activeSessionVehicle}</span></span>
+                                                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm lg:text-base font-bold animate-pulse shadow-lg shadow-blue-500/20">Sessão Ativa</span>
+                                                <span className="text-gray-900 dark:text-white"> Diagnóstico: <span className="text-blue-600 dark:text-blue-400">{activeSessionVehicle}</span></span>
                                             </>
                                         ) : 'Painel de Diagnóstico'}
                                         {!activeSessionVehicle && <span className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-[10px] lg:text-xs font-mono uppercase tracking-wider hidden sm:inline-block">{user.name || user.email}</span>}
@@ -457,14 +459,20 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
 
                 {/* Floating Add Button in Active Session */}
                 {activeSessionVehicle && !activeType && (
-                    <div className="absolute bottom-6 right-6 lg:bottom-10 lg:right-10 z-30">
+                    <div className="absolute bottom-8 right-8 lg:bottom-12 lg:right-12 z-30">
                         <button
-                            onClick={() => setActiveType("obd")} // Default to OBD, UX can be expanded to let choose between obd/osciloscopio within session
-                            className="flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-5 py-3.5 shadow-xl shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 font-semibold"
+                            onClick={() => setActiveType("obd")} 
+                            className="flex items-center gap-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 shadow-2xl shadow-blue-500/40 hover:-translate-y-2 transition-all duration-300 font-bold group"
+                            title="Adicionar mais dados a esta viatura"
                         >
-                            <Plus className="h-5 w-5 border-2 border-white/30 rounded-full" />
-                            <span className="hidden sm:inline">Adicionar Captura</span>
-                            <span className="sm:hidden">Nova Captura</span>
+                            <div className="relative">
+                                <Camera className="h-6 w-6 transition-transform group-hover:scale-110" />
+                                <div className="absolute -top-1 -right-1 bg-white text-blue-600 rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-black border border-blue-600 shadow-sm">
+                                    +
+                                </div>
+                            </div>
+                            <span className="hidden sm:inline text-lg">Nova Captura</span>
+                            <span className="sm:hidden">Capturar</span>
                         </button>
                     </div>
                 )}

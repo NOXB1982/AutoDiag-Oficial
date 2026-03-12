@@ -40,7 +40,8 @@ IMPORTANTE: Terminologia técnica PT-PT.
  ANALISA ESTA IMAGEM DE UM ECRÃ DE SCANNER AUTOMÓVEL.
 
 PRIORIDADE MÁXIMA DE IDENTIFICAÇÃO:
-1. VIN LOCK: Tenta encontrar o VIN (17 caracteres) no cabeçalho ou dados. Se detetado, retorna-o no campo "vin".
+1. VIN LOCK & DECODING: Tenta encontrar o VIN (17 caracteres). Se detetado, retorna-o no campo "vin". 
+   - IMPORTANTE: Usa o VIN e os dados visíveis para descodificar a viatura. O campo "vehicle" deve conter "Marca Modelo Ano" (ex: "BMW 320d 2021") e NÃO apenas o código do chassis.
 2. TABELA DE DADOS: Varre exaustivamente todas as linhas do scanner (Autel, TEXA, etc).
 
 DIRETRIZES TÉCNICAS (CONTEXTO: ${contextVehicle || 'Nova Sessão'}):
