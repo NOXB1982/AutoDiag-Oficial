@@ -17,6 +17,47 @@ export interface DiagnosticRecord {
     createdAt: Date;
 }
 
+function ParameterChart({ value, ideal, status }: { value: number | null, ideal: number | null, status: string }) {
+    if (value === null || ideal === null) return null;
+
+    const max = Math.max(value, ideal) * 1.2;
+    const valPerc = Math.min((value / max) * 100, 100);
+    const idealPerc = Math.min((ideal / max) * 100, 100);
+
+    const barColor = status === 'error' ? 'bg-red-500' : status === 'warning' ? 'bg-amber-500' : 'bg-emerald-500';
+
+    return (
+        <div className="mt-4 px-4 pb-4">
+            <div className="space-y-3">
+                <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                        <span>Lido</span>
+                        <span>{value}</span>
+                    </div>
+                    <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                        <div 
+                            className={`h-full ${barColor} transition-all duration-1000 ease-out rounded-full shadow-sm`} 
+                            style={{ width: `${valPerc}%` }}
+                        />
+                    </div>
+                </div>
+                <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-blue-400 dark:text-blue-500">
+                        <span>Ideal</span>
+                        <span>{ideal}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                        <div 
+                            className="h-full bg-blue-400 dark:bg-blue-600 transition-all duration-1000 ease-out rounded-full opacity-60" 
+                            style={{ width: `${idealPerc}%` }}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function ParameterRow({ param }: { param: DiagnosticResult['parameters'][0] }) {
     const [isOpen, setIsOpen] = useState(false)
 
@@ -33,42 +74,47 @@ function ParameterRow({ param }: { param: DiagnosticResult['parameters'][0] }) {
     return (
         <div className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 px-4 gap-3">
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 flex-1">
                     <StatusIcon className={`h-5 w-5 shrink-0 mt-0.5 ${statusColor}`} />
-                    <div>
+                    <div className="flex-1">
                         <span className="font-semibold text-gray-900 dark:text-gray-100 block">{param.name}</span>
                         <div className="flex flex-wrap items-center gap-2 mt-1">
-                            <span className="text-gray-900 dark:text-white font-mono font-medium text-sm">{param.value}</span>
+                            <span className="text-gray-900 dark:text-white font-mono font-bold text-base">{param.value}</span>
                             <span className="text-gray-400 dark:text-gray-500 text-xs">/</span>
-                            <span className="text-gray-500 dark:text-gray-400 font-mono text-xs" title="Valor Ideal">Ideal: {param.idealValue}</span>
+                            <span className="text-gray-500 dark:text-gray-400 font-mono text-sm" title="Valor Ideal">Ideal: {param.idealValue}</span>
                         </div>
                     </div>
                 </div>
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className={`flex items-center gap-1 text-xs font-medium transition-colors px-3 py-1.5 rounded-full shrink-0 ${isOpen ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-400' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'}`}
-                >
-                    <Info className="h-3.5 w-3.5" />
-                    Detalhes Técnicos
-                    {isOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className={`flex items-center gap-1 text-xs font-bold transition-all px-4 py-2 rounded-lg shrink-0 ${isOpen ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'}`}
+                    >
+                        {isOpen ? 'Ocultar' : 'Análise IA'}
+                        {isOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                    </button>
+                </div>
             </div>
+
+            <ParameterChart value={param.numericValue ?? null} ideal={param.numericIdealValue ?? null} status={param.status} />
 
             {isOpen && (
                 <div className="px-4 pb-4 animate-in slide-in-from-top-2 duration-200">
-                    <div className="bg-gray-100 dark:bg-gray-800/80 rounded-lg p-5 text-sm space-y-4 shadow-inner border border-gray-200 dark:border-gray-700">
-                        <div>
-                            <strong className="block text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-1"><Search className="h-3 w-3" /> O que é?</strong>
-                            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{param.explanation.whatIsIt}</p>
-                        </div>
-                        <div className="bg-blue-50 dark:bg-blue-900/10 p-3 rounded-md border border-blue-100 dark:border-blue-800/30">
-                            <strong className="block text-blue-900 dark:text-blue-400 mb-1 flex items-center gap-1"><Cpu className="h-3 w-3" /> Significado do Valor (Análise IA)</strong>
-                            <p className="text-blue-800 dark:text-blue-300 leading-relaxed font-medium whitespace-pre-line">{param.explanation.meaning}</p>
+                    <div className="bg-white dark:bg-gray-900 rounded-xl p-5 text-sm space-y-4 shadow-xl border border-blue-100 dark:border-blue-900/30 ring-1 ring-blue-50/50">
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <strong className="block text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider opacity-60"><Search className="h-3 w-3" /> O que é?</strong>
+                                <p className="text-gray-700 dark:text-gray-300 font-medium leading-relaxed">{param.explanation.whatIsIt}</p>
+                            </div>
+                            <div className="bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-800/30">
+                                <strong className="block text-blue-900 dark:text-blue-400 mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider"><Cpu className="h-3 w-3" /> Significado Técnico</strong>
+                                <p className="text-blue-800 dark:text-blue-200 leading-relaxed font-semibold whitespace-pre-line">{param.explanation.meaning}</p>
+                            </div>
                         </div>
                         {param.explanation.whatToCheck !== "" && (
-                            <div className="bg-amber-50 dark:bg-amber-900/10 p-3 rounded-md border border-amber-100 dark:border-amber-800/30">
-                                <strong className="block text-amber-900 dark:text-amber-400 mb-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> O que verificar na oficina?</strong>
-                                <p className="text-amber-800 dark:text-amber-300 font-medium leading-relaxed whitespace-pre-line">{param.explanation.whatToCheck}</p>
+                            <div className="bg-amber-50/50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-800/30">
+                                <strong className="block text-amber-900 dark:text-amber-400 mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider"><AlertCircle className="h-3 w-3" /> O que verificar na oficina?</strong>
+                                <p className="text-amber-800 dark:text-amber-200 font-bold leading-relaxed whitespace-pre-line">{param.explanation.whatToCheck}</p>
                             </div>
                         )}
                     </div>
@@ -99,10 +145,13 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
     }, [history, activeSessionVehicle]);
 
     const handleResult = async (res: DiagnosticResult) => {
-        // If we are in a session, forcefully override the vehicle name to group it
-        const finalVehicleName = activeSessionVehicle || res.vehicle;
+        // VIN-Lock Logic: If a VIN is detected and we aren't in a session, start one
+        if (res.vin && !activeSessionVehicle) {
+            setActiveSessionVehicle(res.vin);
+        }
+
+        const finalVehicleName = activeSessionVehicle || res.vin || res.vehicle || "Veículo Desconhecido";
         
-        // Convert to local result view temporarily for the single-photo view
         res.vehicle = finalVehicleName;
         setResult(res)
         setIsSaving(true)
@@ -110,8 +159,13 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
         try {
             const dataResponse = await saveDiagnostic(finalVehicleName, res.parameters, res.diagnosis, activeType || "obd")
             if (dataResponse.success && dataResponse.diagnostic) {
-                // Prepend the new database record to the history to form the multi-photo feed
                 setHistory(prev => [dataResponse.diagnostic as DiagnosticRecord, ...prev])
+                
+                // Continuous Capture Logic: If we just detected a VIN, trigger a new capture automatically
+                if (res.vin && !activeType) {
+                    // Feedback loop: Keep current result visible but allow adding more captures
+                    // The floating button will be visible because activeSessionVehicle is set
+                }
             }
         } catch (e) {
             console.error(e)
@@ -190,7 +244,7 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative">
                 <div className="flex-1 overflow-y-auto w-full">
-                    <div className="mx-auto max-w-5xl p-4 lg:p-8 space-y-8 pb-32">
+                    <div className="mx-auto max-w-[1600px] p-4 lg:p-10 space-y-10 pb-32">
                         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between py-2">
                             <div className="flex items-start gap-3">
                                 <button 
@@ -214,12 +268,17 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
                                     </button>
                                 )}
                                 <div>
-                                    <h1 className="text-2xl lg:text-3xl font-bold tracking-tight mb-1 flex items-center gap-3 text-gray-900 dark:text-white">
-                                        {activeSessionVehicle ? `Sessão: ${activeSessionVehicle}` : 'Painel de Diagnóstico'}
+                                    <h1 className="text-2xl lg:text-4xl font-black tracking-tight mb-2 flex flex-wrap items-center gap-3 text-gray-900 dark:text-white">
+                                        {activeSessionVehicle ? (
+                                            <>
+                                                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm lg:text-base font-bold animate-pulse">Sessão Ativa</span>
+                                                <span>Veículo: <span className="text-blue-600 dark:text-blue-400 font-mono">{activeSessionVehicle}</span></span>
+                                            </>
+                                        ) : 'Painel de Diagnóstico'}
                                         {!activeSessionVehicle && <span className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-[10px] lg:text-xs font-mono uppercase tracking-wider hidden sm:inline-block">{user.name || user.email}</span>}
                                     </h1>
-                                    <p className="text-sm lg:text-base text-gray-500 dark:text-gray-400">
-                                        {activeSessionVehicle ? 'Histórico multi-foto e monitorização visual para esta viatura.' : 'Bem-vindo ao AutoDiag AI. Fotografe o seu ecrã para análise técnica.'}
+                                    <p className="text-base lg:text-lg text-gray-500 dark:text-gray-400 font-medium">
+                                        {activeSessionVehicle ? 'Motor VIN-Lock Ativo. Captura de parâmetros contínua habilitada.' : 'Bem-vindo ao AutoDiag AI. Fotografe o VIN ou o ecrã para começar.'}
                                     </p>
                                 </div>
                             </div>
@@ -280,7 +339,7 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
                             </div>
                         )}
 
-                        <CameraUpload onResult={handleResult} type={activeType} />
+                        <CameraUpload onResult={handleResult} type={activeType} contextVehicle={activeSessionVehicle} />
                     </div>
                 </div>
             )}
@@ -307,34 +366,35 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
 
                     {isSaving && <div className="text-sm text-gray-500 flex items-center gap-2 px-1"><div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div> Adicionando à sessão...</div>}
 
-                    <div className="grid gap-6 md:grid-cols-3 items-start">
-                        <div className="md:col-span-2 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden shadow-sm">
-                            <div className="bg-gray-50 dark:bg-gray-800/80 px-4 py-3 border-b border-gray-200 dark:border-gray-800">
-                                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                                    <Search className="h-4 w-4 text-blue-500" />
-                                    {activeType === 'osciloscopio' ? 'Sinal' : 'Parâmetros'}
+                    <div className="grid gap-8 xl:grid-cols-4 items-start">
+                        <div className="xl:col-span-3 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950 overflow-hidden shadow-2xl">
+                            <div className="bg-gray-50 dark:bg-gray-900/50 px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                                <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 text-lg">
+                                    <Activity className="h-5 w-5 text-blue-500" />
+                                    {activeType === 'osciloscopio' ? 'Análise de Onda' : 'Tabela de Parâmetros'}
                                 </h3>
+                                <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase">Real Time</span>
                             </div>
-                            <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                            <div className="grid sm:grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-100 dark:divide-gray-800">
                                 {result.parameters?.map((param, idx) => (
                                     <ParameterRow key={idx} param={param} />
                                 ))}
                                 {(!result.parameters || result.parameters.length === 0) && (
-                                    <div className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    <div className="p-10 text-center text-base text-gray-500 dark:text-gray-400 col-span-2">
                                         Nenhum parâmetro legível detetado. Repita a fotografia focando os valores numéricos.
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-900/10 overflow-hidden shadow-sm sticky top-6">
-                            <div className="bg-amber-100 dark:bg-amber-900/30 px-4 py-3 border-b border-amber-200 dark:border-amber-800/40">
-                                <h3 className="font-semibold text-amber-900 dark:text-amber-400 flex items-center gap-2 text-sm">
-                                    <AlertCircle className="h-4 w-4" />
-                                    Conclusão da IA
+                        <div className="rounded-2xl border border-amber-200 bg-amber-50 dark:border-amber-900/30 dark:bg-amber-900/10 overflow-hidden shadow-xl sticky top-6">
+                            <div className="bg-amber-100 dark:bg-amber-950/40 px-6 py-4 border-b border-amber-200 dark:border-amber-900/20">
+                                <h3 className="font-bold text-amber-900 dark:text-amber-400 flex items-center gap-2 text-sm uppercase tracking-wide">
+                                    <Cpu className="h-4 w-4" />
+                                    Conclusão Mestre
                                 </h3>
                             </div>
-                            <div className="p-4 text-amber-950 dark:text-amber-100/90 leading-relaxed text-sm whitespace-pre-wrap">
+                            <div className="p-6 text-amber-950 dark:text-amber-100/90 leading-relaxed text-base font-medium whitespace-pre-wrap">
                                 {result.diagnosis}
                             </div>
                         </div>
@@ -364,21 +424,21 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
                                      <span className="opacity-50 mx-1">/</span>
                                      <span className="uppercase tracking-wider text-[10px] bg-gray-200 dark:bg-gray-800 px-2 py-0.5 rounded-full">{record.type}</span>
                                  </div>
-                                 <div className="grid gap-6 md:grid-cols-3 items-start">
-                                     <div className="md:col-span-2 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden shadow-sm">
-                                         <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                                 <div className="grid gap-8 xl:grid-cols-4 items-start">
+                                     <div className="xl:col-span-3 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950 overflow-hidden shadow-lg">
+                                         <div className="grid sm:grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-100 dark:divide-gray-800">
                                              {parameters.map((param: any, idx: number) => (
                                                  <ParameterRow key={idx} param={param} />
                                              ))}
                                          </div>
                                      </div>
-                                     <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-900/10 overflow-hidden shadow-sm">
-                                         <div className="bg-amber-100 dark:bg-amber-900/30 px-4 py-3 border-b border-amber-200 dark:border-amber-800/40">
-                                             <h3 className="font-semibold text-amber-900 dark:text-amber-400 flex items-center gap-2 text-sm">
-                                                 <AlertCircle className="h-4 w-4" /> Análise IA
+                                     <div className="rounded-2xl border border-amber-100 bg-amber-50/30 dark:border-amber-900/20 dark:bg-amber-900/5 overflow-hidden">
+                                         <div className="bg-amber-100/50 dark:bg-amber-900/20 px-4 py-2 border-b border-amber-100 dark:border-amber-800/30">
+                                             <h3 className="font-bold text-amber-900 dark:text-amber-400 flex items-center gap-2 text-xs uppercase">
+                                                 <AlertCircle className="h-3.5 w-3.5" /> Análise IA
                                              </h3>
                                          </div>
-                                         <div className="p-4 text-amber-950 dark:text-amber-100/90 leading-relaxed text-sm whitespace-pre-wrap">
+                                         <div className="p-4 text-amber-900/80 dark:text-amber-200/70 leading-relaxed text-sm whitespace-pre-wrap font-medium">
                                              {record.diagnosis}
                                          </div>
                                      </div>

@@ -5,11 +5,14 @@ import { Camera, Loader2, UploadCloud } from "lucide-react"
 import { diagnoseImage } from "@/app/actions/diagnose"
 
 export type DiagnosticResult = {
+    vin?: string | null;
     vehicle: string;
     parameters: Array<{
         name: string;
         value: string;
+        numericValue?: number | null;
         idealValue: string;
+        numericIdealValue?: number | null;
         status: "ok" | "warning" | "error";
         explanation: {
             whatIsIt: string;
@@ -23,9 +26,10 @@ export type DiagnosticResult = {
 interface CameraUploadProps {
     onResult: (result: DiagnosticResult) => void;
     type?: "obd" | "osciloscopio";
+    contextVehicle?: string | null;
 }
 
-export function CameraUpload({ onResult, type = "obd" }: CameraUploadProps) {
+export function CameraUpload({ onResult, type = "obd", contextVehicle = null }: CameraUploadProps) {
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [isProcessing, setIsProcessing] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -39,7 +43,7 @@ export function CameraUpload({ onResult, type = "obd" }: CameraUploadProps) {
 
         try {
             const base64Image = await processImage(file)
-            const result = await diagnoseImage(base64Image, type)
+            const result = await diagnoseImage(base64Image, type, contextVehicle)
             onResult(result)
         } catch (err: any) {
             setError(err.message || "Ocorreu um erro ao processar a imagem. Confirme a GEMINI_API_KEY no .env.local")
