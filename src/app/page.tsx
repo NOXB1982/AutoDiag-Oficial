@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { DashboardClient } from "@/components/dashboard-client"
 import { redirect } from "next/navigation"
+import { getUserDiagnostics } from "@/app/actions/diagnostics"
 
 export default async function Home() {
   const session = await auth()
@@ -13,5 +14,7 @@ export default async function Home() {
     redirect("/admin")
   }
 
-  return <DashboardClient user={session.user} />
+  const initialDiagnostics = await getUserDiagnostics()
+
+  return <DashboardClient user={session.user} initialHistory={initialDiagnostics} />
 }

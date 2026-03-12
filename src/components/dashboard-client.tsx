@@ -1,10 +1,21 @@
 "use client"
 
-import { useState } from "react"
-import { Cpu, Search, AlertCircle, CheckCircle2, Info, ChevronDown, ChevronUp, LogOut, XCircle, AlertTriangle, Activity, ArrowLeft } from "lucide-react"
+import { useState, useMemo } from "react"
+import { Cpu, Search, AlertCircle, CheckCircle2, Info, ChevronDown, ChevronUp, LogOut, XCircle, AlertTriangle, Activity, ArrowLeft, Menu, Plus } from "lucide-react"
 import { CameraUpload, type DiagnosticResult } from "@/components/camera-upload"
 import { saveDiagnostic } from "@/app/actions/diagnostics"
 import { signOut } from "next-auth/react"
+
+// Defines a recorded DB session format
+export interface DiagnosticRecord {
+    id: string;
+    userId: string;
+    type: string;
+    vehicle: string;
+    parameters: string; // JSON string
+    diagnosis: string;
+    createdAt: Date;
+}
 
 function ParameterRow({ param }: { param: DiagnosticResult['parameters'][0] }) {
     const [isOpen, setIsOpen] = useState(false)
@@ -28,7 +39,7 @@ function ParameterRow({ param }: { param: DiagnosticResult['parameters'][0] }) {
                         <span className="font-semibold text-gray-900 dark:text-gray-100 block">{param.name}</span>
                         <div className="flex flex-wrap items-center gap-2 mt-1">
                             <span className="text-gray-900 dark:text-white font-mono font-medium text-sm">{param.value}</span>
-                            <span className="text-gray-400 dark:text-gray-500 text-xs text-xs">/</span>
+                            <span className="text-gray-400 dark:text-gray-500 text-xs">/</span>
                             <span className="text-gray-500 dark:text-gray-400 font-mono text-xs" title="Valor Ideal">Ideal: {param.idealValue}</span>
                         </div>
                     </div>
@@ -52,12 +63,12 @@ function ParameterRow({ param }: { param: DiagnosticResult['parameters'][0] }) {
                         </div>
                         <div className="bg-blue-50 dark:bg-blue-900/10 p-3 rounded-md border border-blue-100 dark:border-blue-800/30">
                             <strong className="block text-blue-900 dark:text-blue-400 mb-1 flex items-center gap-1"><Cpu className="h-3 w-3" /> Significado do Valor (Análise IA)</strong>
-                            <p className="text-blue-800 dark:text-blue-300 leading-relaxed font-medium">{param.explanation.meaning}</p>
+                            <p className="text-blue-800 dark:text-blue-300 leading-relaxed font-medium whitespace-pre-line">{param.explanation.meaning}</p>
                         </div>
                         {param.explanation.whatToCheck !== "" && (
                             <div className="bg-amber-50 dark:bg-amber-900/10 p-3 rounded-md border border-amber-100 dark:border-amber-800/30">
                                 <strong className="block text-amber-900 dark:text-amber-400 mb-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> O que verificar na oficina?</strong>
-                                <p className="text-amber-800 dark:text-amber-300 font-medium leading-relaxed">{param.explanation.whatToCheck}</p>
+                                <p className="text-amber-800 dark:text-amber-300 font-medium leading-relaxed whitespace-pre-line">{param.explanation.whatToCheck}</p>
                             </div>
                         )}
                     </div>
@@ -67,16 +78,41 @@ function ParameterRow({ param }: { param: DiagnosticResult['parameters'][0] }) {
     )
 }
 
-export function DashboardClient({ user }: { user: { name?: string | null, email?: string | null, role?: string } }) {
+export function DashboardClient({ user, initialHistory = [] }: { user: { name?: string | null, email?: string | null, role?: string }, initialHistory?: DiagnosticRecord[] }) {
+    const [history, setHistory] = useState<DiagnosticRecord[]>(initialHistory)
     const [result, setResult] = useState<DiagnosticResult | null>(null)
     const [isSaving, setIsSaving] = useState(false)
     const [activeType, setActiveType] = useState<"obd" | "osciloscopio" | null>(null)
+    const [activeSessionVehicle, setActiveSessionVehicle] = useState<string | null>(null)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+    // Compute unique vehicles from history for the Sidebar
+    const uniqueVehicles = useMemo(() => {
+        const vehicles = new Set(history.map(d => d.vehicle));
+        return Array.from(vehicles).sort((a, b) => a.localeCompare(b));
+    }, [history]);
+
+    // Compute diagnostics belonging strictly to the active session
+    const activeSessionRecords = useMemo(() => {
+        if (!activeSessionVehicle) return [];
+        return history.filter(d => d.vehicle === activeSessionVehicle);
+    }, [history, activeSessionVehicle]);
 
     const handleResult = async (res: DiagnosticResult) => {
+        // If we are in a session, forcefully override the vehicle name to group it
+        const finalVehicleName = activeSessionVehicle || res.vehicle;
+        
+        // Convert to local result view temporarily for the single-photo view
+        res.vehicle = finalVehicleName;
         setResult(res)
         setIsSaving(true)
+        
         try {
-            await saveDiagnostic(res.vehicle, res.parameters, res.diagnosis, activeType || "obd")
+            const dataResponse = await saveDiagnostic(finalVehicleName, res.parameters, res.diagnosis, activeType || "obd")
+            if (dataResponse.success && dataResponse.diagnostic) {
+                // Prepend the new database record to the history to form the multi-photo feed
+                setHistory(prev => [dataResponse.diagnostic as DiagnosticRecord, ...prev])
+            }
         } catch (e) {
             console.error(e)
         } finally {
@@ -84,46 +120,116 @@ export function DashboardClient({ user }: { user: { name?: string | null, email?
         }
     }
 
-    return (
-        <div className="mx-auto max-w-5xl p-6 lg:p-8 space-y-8">
-            <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex items-start gap-4">
-                    {(activeType || result) && (
-                        <button
-                            onClick={() => {
-                                setActiveType(null)
-                                setResult(null)
-                            }}
-                            className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
-                            title="Voltar aos Modos de Diagnóstico"
-                        >
-                            <ArrowLeft className="h-5 w-5" />
-                        </button>
-                    )}
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3">
-                            Painel de Diagnóstico
-                            <span className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider">{user.name || user.email}</span>
-                        </h1>
-                        <p className="text-gray-500 dark:text-gray-400">
-                            Bem-vindo ao AutoDiag AI. Fotografe o ecrã do seu scanner OBD2 ou osciloscópio para análise técnica.
-                        </p>
-                    </div>
-                </div>
-                <button
-                    onClick={() => signOut({ callbackUrl: '/login' })}
-                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-all border border-gray-200 dark:border-gray-700"
-                >
-                    <LogOut className="h-4 w-4" />
-                    Terminar Sessão
-                </button>
-            </header>
+    const openSession = (vehicle: string) => {
+        setActiveSessionVehicle(vehicle);
+        setResult(null); // Clear single photo mode
+        setActiveType(null);
+        setIsSidebarOpen(false); // Close mobile drawer
+    }
 
-            {!result && !activeType && (
-                <div className="grid gap-6 md:grid-cols-3">
+    return (
+        <div className="flex h-[100dvh] overflow-hidden bg-gray-50 dark:bg-black">
+            
+            {/* Mobile Drawer Overlay */}
+            {isSidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
+            {/* Sidebar (Sessões/Veículos) */}
+            <aside className={`
+                fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 
+                transform transition-transform duration-300 ease-in-out flex flex-col
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+            `}>
+                <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                    <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-blue-500" />
+                        Minha Oficina
+                    </h2>
+                    <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-gray-500 hover:bg-gray-100 p-1.5 rounded-md dark:hover:bg-gray-800">
+                        <XCircle className="h-5 w-5" />
+                    </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-1">
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2">
+                        Histórico de Veículos
+                    </div>
+                    {uniqueVehicles.length === 0 ? (
+                        <div className="text-sm text-gray-500 px-2 py-4">Sem diagnósticos. Comece uma nova análise.</div>
+                    ) : (
+                        uniqueVehicles.map((vehicle) => (
+                            <button
+                                key={vehicle}
+                                onClick={() => openSession(vehicle)}
+                                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center gap-3
+                                    ${activeSessionVehicle === vehicle 
+                                        ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium ring-1 ring-inset ring-blue-600/20' 
+                                        : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+                                    }`}
+                            >
+                                <Search className="h-4 w-4 shrink-0 opacity-70" />
+                                <span className="truncate">{vehicle}</span>
+                            </button>
+                        ))
+                    )}
+                </div>
+                <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+                     <button
+                        onClick={() => signOut({ callbackUrl: '/login' })}
+                        className="w-full flex items-center justify-center gap-2 rounded-lg bg-gray-100 dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+                    >
+                        <LogOut className="h-4 w-4" />
+                        Sair
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content Area */}
+            <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative">
+                <div className="flex-1 overflow-y-auto w-full">
+                    <div className="mx-auto max-w-5xl p-4 lg:p-8 space-y-8 pb-32">
+                        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between py-2">
+                            <div className="flex items-start gap-3">
+                                <button 
+                                    className="lg:hidden mt-0.5 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                                    onClick={() => setIsSidebarOpen(true)}
+                                >
+                                    <Menu className="h-7 w-7" />
+                                </button>
+                                
+                                {(activeType || result || activeSessionVehicle) && (
+                                    <button
+                                        onClick={() => {
+                                            setActiveType(null)
+                                            setResult(null)
+                                            setActiveSessionVehicle(null)
+                                        }}
+                                        className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                        title="Voltar ao Ecrã Inicial"
+                                    >
+                                        <ArrowLeft className="h-4 w-4" />
+                                    </button>
+                                )}
+                                <div>
+                                    <h1 className="text-2xl lg:text-3xl font-bold tracking-tight mb-1 flex items-center gap-3 text-gray-900 dark:text-white">
+                                        {activeSessionVehicle ? `Sessão: ${activeSessionVehicle}` : 'Painel de Diagnóstico'}
+                                        {!activeSessionVehicle && <span className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-[10px] lg:text-xs font-mono uppercase tracking-wider hidden sm:inline-block">{user.name || user.email}</span>}
+                                    </h1>
+                                    <p className="text-sm lg:text-base text-gray-500 dark:text-gray-400">
+                                        {activeSessionVehicle ? 'Histórico multi-foto e monitorização visual para esta viatura.' : 'Bem-vindo ao AutoDiag AI. Fotografe o seu ecrã para análise técnica.'}
+                                    </p>
+                                </div>
+                            </div>
+                        </header>
+
+            {!result && !activeType && !activeSessionVehicle && (
+                <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 md:grid-cols-3">
                     <button
                         onClick={() => setActiveType("obd")}
-                        className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 group flex flex-col text-left hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
+                        className="rounded-xl border border-gray-200 bg-white p-5 lg:p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 group flex flex-col text-left hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
                     >
                         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30 mb-4 transition-transform group-hover:scale-110">
                             <Search className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -161,9 +267,9 @@ export function DashboardClient({ user }: { user: { name?: string | null, email?
 
             {!result && activeType && (
                 <div className="space-y-4">
-                    <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900 flex flex-col items-center text-center justify-center min-h-[300px] border-dashed">
+                    <div className="rounded-xl border border-gray-200 bg-white p-4 lg:p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900 flex flex-col items-center text-center justify-center min-h-[300px] lg:min-h-[400px] border-dashed">
                         {activeType === "osciloscopio" ? (
-                            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-purple-50 dark:bg-purple-900/20 mb-2 relative">
+                            <div className="flex h-16 w-16 lg:h-20 lg:w-20 items-center justify-center rounded-full bg-purple-50 dark:bg-purple-900/20 mb-2 relative">
                                 <div className="absolute inset-0 rounded-full border-4 border-purple-500/20 animate-ping"></div>
                                 <Activity className="h-10 w-10 text-purple-600 dark:text-purple-400 relative z-10" />
                             </div>
@@ -179,32 +285,34 @@ export function DashboardClient({ user }: { user: { name?: string | null, email?
                 </div>
             )}
 
-            {result && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
+            {/* Single Capture View (Post-Upload State) */}
+            {result && !activeSessionVehicle && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <h2 className="text-xl lg:text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
                             <CheckCircle2 className="h-6 w-6 text-green-500" />
-                            {activeType === "osciloscopio" ? `Onda Entendida: ${result.vehicle}` : `Viatura Entendida: ${result.vehicle}`}
+                            {activeType === "osciloscopio" ? `Onda: ${result.vehicle}` : `Viatura: ${result.vehicle}`}
                         </h2>
                         <button
                             onClick={() => {
+                                // Close result to go back to main screen or session
                                 setResult(null)
                                 setActiveType(null)
                             }}
                             className="text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white transition-colors border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-lg shadow-sm"
                         >
-                            Nova Análise OBD
+                            Sair da Captura
                         </button>
                     </div>
 
-                    {isSaving && <div className="text-sm text-gray-500 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div> A guardar diagnóstico nos registos da oficina...</div>}
+                    {isSaving && <div className="text-sm text-gray-500 flex items-center gap-2 px-1"><div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div> Adicionando à sessão...</div>}
 
                     <div className="grid gap-6 md:grid-cols-3 items-start">
                         <div className="md:col-span-2 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden shadow-sm">
-                            <div className="bg-gray-50 dark:bg-gray-800/80 px-5 py-4 border-b border-gray-200 dark:border-gray-800">
+                            <div className="bg-gray-50 dark:bg-gray-800/80 px-4 py-3 border-b border-gray-200 dark:border-gray-800">
                                 <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                                    <Search className="h-5 w-5 text-blue-500" />
-                                    {activeType === 'osciloscopio' ? 'Parâmetros Elétricos e Ondas' : 'Parâmetros Técnicos Captados'}
+                                    <Search className="h-4 w-4 text-blue-500" />
+                                    {activeType === 'osciloscopio' ? 'Sinal' : 'Parâmetros'}
                                 </h3>
                             </div>
                             <div className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -212,38 +320,95 @@ export function DashboardClient({ user }: { user: { name?: string | null, email?
                                     <ParameterRow key={idx} param={param} />
                                 ))}
                                 {(!result.parameters || result.parameters.length === 0) && (
-                                    <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                                        Nenhum parâmetro extraído de forma legível. Tente tirar a foto com melhor enquadramento e foco.
+                                    <div className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        Nenhum parâmetro legível detetado. Repita a fotografia focando os valores numéricos.
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-900/10 overflow-hidden shadow-sm sticky top-6">
-                            <div className="bg-amber-100 dark:bg-amber-900/30 px-5 py-4 border-b border-amber-200 dark:border-amber-800/40">
-                                <h3 className="font-semibold text-amber-900 dark:text-amber-400 flex items-center gap-2">
-                                    <AlertCircle className="h-5 w-5" />
-                                    {activeType === 'osciloscopio' ? 'Diagnóstico do Circuito / Sensor' : 'Diagnóstico do Motor'}
+                            <div className="bg-amber-100 dark:bg-amber-900/30 px-4 py-3 border-b border-amber-200 dark:border-amber-800/40">
+                                <h3 className="font-semibold text-amber-900 dark:text-amber-400 flex items-center gap-2 text-sm">
+                                    <AlertCircle className="h-4 w-4" />
+                                    Conclusão da IA
                                 </h3>
                             </div>
-                            <div className="p-5 text-amber-950 dark:text-amber-100/90 leading-relaxed text-sm whitespace-pre-wrap">
+                            <div className="p-4 text-amber-950 dark:text-amber-100/90 leading-relaxed text-sm whitespace-pre-wrap">
                                 {result.diagnosis}
-
-                                <div className="mt-8 pt-4 border-t border-amber-200/50 dark:border-amber-800/50 flex gap-2 items-start">
-                                    <AlertTriangle className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
-                                    <p className="text-xs text-gray-500 dark:text-gray-400/80 leading-relaxed">
-                                        Este relatório é um assistente baseado em IA. Os resultados devem ser validados por um técnico qualificado antes de qualquer intervenção no veículo.
-                                    </p>
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            <p className="mt-12 pt-8 text-center text-xs font-medium text-gray-400 dark:text-gray-500 max-w-lg mx-auto">
-                Versão Beta Privada. O uso desta plataforma é exclusivo para parceiros autorizados e está sujeito a confidencialidade.
+            {/* Multip-Photo Session View */}
+            {activeSessionVehicle && !activeType && (
+                <div className="space-y-12 animate-in fade-in max-w-4xl mx-auto">
+                    {/* Render History from newest to oldest */}
+                    {activeSessionRecords.length === 0 && <p className="text-gray-500 text-center py-10">Sessão vazia.</p>}
+                    
+                    {activeSessionRecords.map((record, index) => {
+                         let parameters = [];
+                         try {
+                              parameters = JSON.parse(record.parameters);
+                         } catch (e) {
+                              console.error("Invalid JSON args in db");
+                         }
+                         
+                         return (
+                             <div key={record.id} className="space-y-4 pt-6 border-t border-gray-200 dark:border-gray-800 first:border-0 first:pt-0">
+                                 <div className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 px-1">
+                                     <Activity className="h-4 w-4" />
+                                     Captura de {new Date(record.createdAt).toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit'})} 
+                                     <span className="opacity-50 mx-1">/</span>
+                                     <span className="uppercase tracking-wider text-[10px] bg-gray-200 dark:bg-gray-800 px-2 py-0.5 rounded-full">{record.type}</span>
+                                 </div>
+                                 <div className="grid gap-6 md:grid-cols-3 items-start">
+                                     <div className="md:col-span-2 rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden shadow-sm">
+                                         <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                                             {parameters.map((param: any, idx: number) => (
+                                                 <ParameterRow key={idx} param={param} />
+                                             ))}
+                                         </div>
+                                     </div>
+                                     <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-900/10 overflow-hidden shadow-sm">
+                                         <div className="bg-amber-100 dark:bg-amber-900/30 px-4 py-3 border-b border-amber-200 dark:border-amber-800/40">
+                                             <h3 className="font-semibold text-amber-900 dark:text-amber-400 flex items-center gap-2 text-sm">
+                                                 <AlertCircle className="h-4 w-4" /> Análise IA
+                                             </h3>
+                                         </div>
+                                         <div className="p-4 text-amber-950 dark:text-amber-100/90 leading-relaxed text-sm whitespace-pre-wrap">
+                                             {record.diagnosis}
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
+                         )
+                    })}
+                </div>
+            )}
+
+            <p className="mt-8 pt-8 pb-8 text-center text-[10px] lg:text-xs font-medium text-gray-400 dark:text-gray-600 max-w-lg mx-auto">
+                AutoDiag AI. O uso desta plataforma está sujeito a verificação técnica automóvel.
             </p>
+                    </div>
+                </div>
+
+                {/* Floating Add Button in Active Session */}
+                {activeSessionVehicle && !activeType && (
+                    <div className="absolute bottom-6 right-6 lg:bottom-10 lg:right-10 z-30">
+                        <button
+                            onClick={() => setActiveType("obd")} // Default to OBD, UX can be expanded to let choose between obd/osciloscopio within session
+                            className="flex items-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white px-5 py-3.5 shadow-xl shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 font-semibold"
+                        >
+                            <Plus className="h-5 w-5 border-2 border-white/30 rounded-full" />
+                            <span className="hidden sm:inline">Adicionar Captura</span>
+                            <span className="sm:hidden">Nova Captura</span>
+                        </button>
+                    </div>
+                )}
+            </main>
         </div>
     )
 }

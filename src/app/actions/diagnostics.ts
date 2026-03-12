@@ -11,7 +11,7 @@ export async function saveDiagnostic(vehicle: string, parameters: any, diagnosis
     }
 
     try {
-        await prisma.diagnostic.create({
+        const diag = await prisma.diagnostic.create({
             data: {
                 userId: session.user.id,
                 type,
@@ -20,9 +20,32 @@ export async function saveDiagnostic(vehicle: string, parameters: any, diagnosis
                 diagnosis
             }
         })
-        return { success: true }
+        return { success: true, diagnostic: diag }
     } catch (error) {
         console.error("Erro ao guardar diagnóstico:", error)
         throw new Error("Erro de servidor ao guardar no histórico da oficina.")
+    }
+}
+
+export async function getUserDiagnostics() {
+    const session = await auth()
+
+    if (!session || !session.user?.id) {
+        return []
+    }
+
+    try {
+        const diagnostics = await prisma.diagnostic.findMany({
+            where: {
+                userId: session.user.id
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        })
+        return diagnostics
+    } catch (error) {
+        console.error("Erro ao carregar histórico:", error)
+        return []
     }
 }
