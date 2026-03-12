@@ -40,10 +40,11 @@ IMPORTANTE: Terminologia técnica PT-PT.
  ANALISA ESTA IMAGEM DE UM ECRÃ DE SCANNER AUTOMÓVEL.
 
 PRIORIDADE MÁXIMA DE IDENTIFICAÇÃO:
-1. VIN LOCK & DECODING: Tenta encontrar o VIN (17 caracteres). Se detetado, retorna-o no campo "vin". 
-   - IMPORTANTE: O campo "vehicle" DEVE seguir rigorosamente o padrão: "[Marca] [Modelo] [Motor] - [Ano]" (ex: "VW Golf 1.6 TDI - 2018").
-   - EXTRAÇÃO OBRIGATÓRIA: Identifica obrigatoriamente Cilindrada e Motorização (ex: 2.0 BlueHDi, 1.3 CDTI).
-   - FALLBACK VISUAL: Se o VIN não for conclusivo para o motor, analisa o CONTEXTO VISUAL da foto (logótipos no motor, etiquetas no ecrã da máquina ou chassi) para confirmar a motorização exata.
+1. VIN LOCK & DECODING (EXPERT MODE): Tenta encontrar o VIN (17 caracteres). Se detetado, retorna-o no campo "vin". 
+   - REGRAS DE ESPECIALISTA: Usa obrigatoriamente o 10º dígito para o Ano (ISO 3779) e a secção VDS (posições 4-9) para determinar Motorização/Cilindrada.
+   - PROIBIÇÃO: Se o VIN for válido, É PROIBIDO devolver "desconhecido" no ano ou motor. Fornece a estimativa técnica mais provável baseada na tua base de conhecimento interna.
+   - Padrão de Nome (OBRIGATÓRIO): O campo "vehicle" deve ser "[Marca] [Modelo] [Cilindrada/Motor] ([Ano])" (ex: "VW Golf 1.6 TDI (2018)").
+   - CRUZAMENTO VISUAL: Usa logótipos físicos, etiquetas no chassi ou dados no ecrã do scanner visíveis na foto como confirmação redundante ao VIN.
    - Se não houver VIN, tenta identificar o máximo de dados técnicos pela imagem mantendo o padrão de nome.
 2. TABELA DE DADOS: Varre exaustivamente todas as linhas do scanner (Autel, TEXA, etc).
 
