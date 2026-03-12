@@ -41,7 +41,8 @@ IMPORTANTE: Terminologia técnica PT-PT.
 
 PRIORIDADE MÁXIMA DE IDENTIFICAÇÃO:
 1. VIN LOCK & DECODING: Tenta encontrar o VIN (17 caracteres). Se detetado, retorna-o no campo "vin". 
-   - IMPORTANTE: Usa o VIN e os dados visíveis para descodificar a viatura. O campo "vehicle" deve conter "Marca Modelo Ano" (ex: "BMW 320d 2021") e NÃO apenas o código do chassis.
+   - IMPORTANTE: Usa o VIN e os dados visíveis para uma descodificação técnica detalhada. O campo "vehicle" deve conter "Marca Modelo Motorização Potência Ano (Código Motor)" (ex: "VW Golf VII 1.6 TDI 115cv 2018 (DGT)").
+   - Se não conseguires o código do motor, omite os parênteses. Se não houver VIN, tenta identificar o máximo de dados técnicos pela imagem.
 2. TABELA DE DADOS: Varre exaustivamente todas as linhas do scanner (Autel, TEXA, etc).
 
 DIRETRIZES TÉCNICAS (CONTEXTO: ${contextVehicle || 'Nova Sessão'}):
