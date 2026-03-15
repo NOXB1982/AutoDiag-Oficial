@@ -145,6 +145,7 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
     const [activeType, setActiveType] = useState<"obd" | "osciloscopio" | null>(null)
     const [activeSessionVehicle, setActiveSessionVehicle] = useState<string | null>(null)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+    const [isAnalyzing, setIsAnalyzing] = useState(false)
 
     // Compute unique vehicles from history for the Sidebar
     const uniqueVehicles = useMemo(() => {
@@ -169,7 +170,15 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
         const finalVehicleName = activeSessionVehicle || res.vehicle || res.vin || "Veículo Desconhecido";
         
         res.vehicle = finalVehicleName;
-        setResult(res)
+        
+        // If in session, close camera immediately to show loading/skeleton in the list
+        if (activeSessionVehicle) {
+            setActiveType(null);
+            setIsAnalyzing(true);
+        } else {
+            setResult(res);
+        }
+        
         setIsSaving(true)
         
         try {
@@ -187,10 +196,9 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
             console.error(e)
         } finally {
             setIsSaving(false)
-            // Ensure camera closes even on error if we are in a session
-            if (activeSessionVehicle) {
-                setActiveType(null);
-            }
+            setIsAnalyzing(false)
+            // Ensure camera closes even on error
+            setActiveType(null);
         }
     }
 
@@ -449,7 +457,24 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
                     </div>
 
                     {/* Render History from newest to oldest */}
-                    {activeSessionRecords.length === 0 && <p className="text-gray-500 text-center py-10">Inicie a análise utilizando o cartão acima.</p>}
+                    {activeSessionRecords.length === 0 && !isAnalyzing && <p className="text-gray-500 text-center py-10">Inicie a análise utilizando o cartão acima.</p>}
+                    
+                    {/* Analyzing Skeleton Loader */}
+                    {isAnalyzing && (
+                        <div className="space-y-4 pt-6 border-t border-gray-200 dark:border-gray-800 animate-pulse">
+                            <div className="flex items-center gap-2 px-1">
+                                <div className="h-4 w-4 bg-gray-200 dark:bg-gray-800 rounded"></div>
+                                <div className="h-4 w-48 bg-gray-200 dark:bg-gray-800 rounded"></div>
+                            </div>
+                            <div className="grid gap-8 xl:grid-cols-4 items-start">
+                                <div className="xl:col-span-3 rounded-2xl border border-gray-100 bg-white/50 dark:border-gray-900 dark:bg-gray-950/50 h-48"></div>
+                                <div className="rounded-2xl border border-amber-50 bg-amber-50/20 dark:border-amber-900/10 dark:bg-amber-900/5 h-48 flex flex-col items-center justify-center p-6 text-center">
+                                    <div className="w-8 h-8 rounded-full border-4 border-amber-200 border-t-amber-500 animate-spin mb-3"></div>
+                                    <p className="text-sm font-bold text-amber-900/60 dark:text-amber-400/60">Analisando parâmetros do {activeSessionVehicle}...</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     
                     {activeSessionRecords.map((record, index) => {
                          let parameters = [];
