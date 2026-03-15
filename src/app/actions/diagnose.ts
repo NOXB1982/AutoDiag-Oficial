@@ -99,6 +99,7 @@ Responde ESTRITAMENTE num formato JSON válido com a seguinte estrutura, sem blo
                 }
             ],
             config: {
+                temperature: 0,
                 responseMimeType: "application/json",
             }
         });
