@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { Cpu, Search, AlertCircle, CheckCircle2, Info, ChevronDown, ChevronUp, LogOut, XCircle, AlertTriangle, Activity, ArrowLeft, Menu, Plus, Camera } from "lucide-react"
+import { Cpu, Search, AlertCircle, CheckCircle2, Info, ChevronDown, ChevronUp, LogOut, XCircle, AlertTriangle, Activity, ArrowLeft, Menu, Plus, Camera, Wrench, Hexagon } from "lucide-react"
 import { CameraUpload, type DiagnosticResult } from "@/components/camera-upload"
 import { saveDiagnostic } from "@/app/actions/diagnostics"
 import { signOut } from "next-auth/react"
@@ -479,38 +479,46 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
                     {/* Render History from newest to oldest */}
                     {activeSessionRecords.length === 0 && !isAnalyzing && <p className="text-gray-500 text-center py-10">Inicie a análise utilizando o cartão acima.</p>}
                     
-                    {/* Analyzing Progress Bar */}
+                    {/* Analyzing Wrench Loading & Persistent Disclaimer */}
                     {isAnalyzing && (
                         <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-800 animate-in fade-in duration-500">
-                            <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden relative">
-                                <div className="absolute top-0 left-0 h-1 bg-blue-600 transition-all duration-300 ease-out" style={{ width: `${progress}%` }}></div>
-                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4 relative">
-                                    <div className="absolute inset-0 rounded-full border-4 border-blue-500/20 animate-ping"></div>
-                                    <Cpu className="h-8 w-8 text-blue-600 dark:text-blue-400 relative z-10" />
-                                </div>
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Analisando parâmetros...</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Processando dados técnicos para {activeSessionVehicle}</p>
+                            <style>{`
+                              @keyframes tighten {
+                                0%, 100% { transform: rotate(0deg); }
+                                50% { transform: rotate(20deg); }
+                              }
+                              .animate-tighten {
+                                animation: tighten 1s ease-in-out infinite;
+                              }
+                            `}</style>
+                            <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm relative overflow-hidden">
                                 
-                                <div className="w-full max-w-md bg-gray-100 dark:bg-gray-800 h-2.5 rounded-full overflow-hidden">
+                                {/* Wrench and Screw Animation */}
+                                <div className="h-28 w-28 relative flex items-center justify-center mb-8">
+                                    <Hexagon className="h-14 w-14 text-gray-400 absolute fill-gray-200 dark:fill-gray-800" />
+                                    {/* The transform origin is adjusted so it pivots like a wrench on a nut */}
+                                    <Wrench className="h-16 w-16 text-blue-600 dark:text-blue-500 absolute -top-2 -right-4 animate-tighten drop-shadow-md" style={{ transformOrigin: '15% 85%' }} />
+                                </div>
+                                
+                                <div className="w-full max-w-sm bg-gray-100 dark:bg-gray-800 h-3 rounded-full overflow-hidden mb-4">
                                     <div 
                                         className="h-full bg-blue-600 rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.5)]" 
                                         style={{ width: `${progress}%` }}
                                     ></div>
                                 </div>
-                                <div className="mt-2 text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
-                                    {Math.round(progress)}% Concluído
-                                </div>
+                                
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">A analisar sistemas...</h3>
                             </div>
                         </div>
                     )}
 
-                    {/* Technical Disclaimer Banner */}
+                    {/* Technical Disclaimer Banner - Persistent across loading and results */}
                     {(activeSessionRecords.length > 0 || isAnalyzing) && (
-                        <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800/30 rounded-xl p-4 flex items-start gap-4 animate-in slide-in-from-top-4 duration-500">
+                        <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800/30 rounded-xl p-4 w-full flex items-start gap-4 mx-auto max-w-4xl animate-in slide-in-from-top-4 duration-500">
                             <AlertTriangle className="h-6 w-6 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
-                            <div>
+                            <div className="text-left">
                                 <h4 className="font-bold text-yellow-900 dark:text-yellow-400 text-sm">Aviso de Apoio Técnico</h4>
-                                <p className="text-yellow-800 dark:text-yellow-200/80 text-xs leading-relaxed mt-0.5">
+                                <p className="text-yellow-800 dark:text-yellow-200/80 text-xs leading-relaxed mt-1">
                                     Este diagnóstico é uma sugestão com base em IA. A decisão final e a reparação são da inteira responsabilidade do técnico qualificado.
                                 </p>
                             </div>
