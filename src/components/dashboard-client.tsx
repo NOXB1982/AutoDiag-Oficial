@@ -332,110 +332,109 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
                             </div>
                         </header>
 
-            {!result && !activeType && !activeSessionVehicle && (
-                <>
-                    {/* Unified Loading State replacing the three cards */}
-                    {isAnalyzing ? (
-                        <div className="space-y-6 pt-2 animate-in fade-in duration-500 max-w-lg mx-auto w-full">
-                            <style>{`
-                              @keyframes tighten {
-                                0%, 100% { transform: rotate(0deg); }
-                                50% { transform: rotate(20deg); }
-                              }
-                              .animate-tighten {
-                                animation: tighten 1s ease-in-out infinite;
-                              }
-                            `}</style>
-                            
-                            {/* Technical Disclaimer Banner - Positioned above loading */}
-                            <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800/30 rounded-xl p-4 w-full flex items-start gap-4 shadow-sm">
-                                <AlertTriangle className="h-6 w-6 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
-                                <div className="text-left">
-                                    <h4 className="font-bold text-yellow-900 dark:text-yellow-400 text-sm">Aviso de Apoio Técnico</h4>
-                                    <p className="text-yellow-800 dark:text-yellow-200/80 text-xs leading-relaxed mt-1">
-                                        Este diagnóstico é uma sugestão com base em IA. A decisão final e a reparação são da inteira responsabilidade do técnico qualificado.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm relative overflow-hidden">
-                                {/* Wrench and Screw Animation */}
-                                <div className="h-28 w-28 relative flex items-center justify-center mb-8">
-                                    <Hexagon className="h-14 w-14 text-gray-400 absolute fill-gray-200 dark:fill-gray-800" />
-                                    <Wrench className="h-16 w-16 text-blue-600 dark:text-blue-500 absolute -top-2 -right-4 animate-tighten drop-shadow-md" style={{ transformOrigin: '15% 85%' }} />
-                                </div>
-                                
-                                <div className="w-full max-w-sm bg-gray-100 dark:bg-gray-800 h-3 rounded-full overflow-hidden mb-4">
-                                    <div 
-                                        className="h-full bg-blue-600 rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.5)]" 
-                                        style={{ width: `${progress}%` }}
-                                    ></div>
-                                </div>
-                                
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">A analisar sistemas...</h3>
-                            </div>
+            {/* Unified Loading State Universally Rendered */}
+            {isAnalyzing && (
+                <div className="space-y-6 pt-2 animate-in fade-in duration-500 max-w-lg mx-auto w-full">
+                    <style>{`
+                      @keyframes tighten {
+                        0%, 100% { transform: rotate(0deg); }
+                        50% { transform: rotate(20deg); }
+                      }
+                      .animate-tighten {
+                        animation: tighten 1s ease-in-out infinite;
+                      }
+                    `}</style>
+                    
+                    {/* Technical Disclaimer Banner - Positioned above loading */}
+                    <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800/30 rounded-xl p-4 w-full flex items-start gap-4 shadow-sm">
+                        <AlertTriangle className="h-6 w-6 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
+                        <div className="text-left">
+                            <h4 className="font-bold text-yellow-900 dark:text-yellow-400 text-sm">Aviso de Apoio Técnico</h4>
+                            <p className="text-yellow-800 dark:text-yellow-200/80 text-xs leading-relaxed mt-1">
+                                Este diagnóstico é uma sugestão com base em IA. A decisão final e a reparação são da inteira responsabilidade do técnico qualificado.
+                            </p>
                         </div>
-                    ) : (
-                        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 md:grid-cols-3">
-                            <button
-                                onClick={() => setActiveType("obd")}
-                                className="rounded-xl border border-gray-200 bg-white p-5 lg:p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 group flex flex-col text-left hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
-                            >
-                                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30 mb-4 transition-transform group-hover:scale-110">
-                                    <Search className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                                </div>
-                                <h3 className="font-semibold text-lg mb-1">Inspeção Visual (Scanner)</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Use a câmera do seu dispositivo para captar e limpar reflexos de ecrãs de diagnóstico.</p>
-                            </button>
+                    </div>
 
-                            <button
-                                onClick={() => setActiveType("obd")}
-                                className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 group flex flex-col text-left hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
-                            >
-                                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30 mb-4 transition-transform group-hover:scale-110">
-                                    <Cpu className="h-6 w-6 text-emerald-600 dark:text-emerald-500" />
-                                </div>
-                                <h3 className="font-semibold text-lg mb-1">Camada de Inteligência IA</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Extração estruturada de parâmetros com explicações técnicas de diagnóstico (Gemini).</p>
-                            </button>
-
-                            <button
-                                onClick={() => setActiveType("osciloscopio")}
-                                className="rounded-xl border border-purple-200 bg-white p-6 shadow-sm dark:border-purple-900/30 dark:bg-gray-900 group relative overflow-hidden flex flex-col text-left hover:border-purple-500 dark:hover:border-purple-500 transition-colors"
-                            >
-                                <div className="absolute -right-12 top-6 bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-500 dark:to-indigo-500 text-white text-[10px] font-bold px-12 py-1 rotate-45 shadow-sm tracking-wider z-10">
-                                    ELITE
-                                </div>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30 mb-4 transition-transform group-hover:scale-110 relative z-0">
-                                    <Activity className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                                </div>
-                                <h3 className="font-semibold text-lg mb-1 relative z-0">Mestre de Osciloscópio</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 relative z-0">Interpretação IA avançada de formas de onda e sinais elétricos. Capte o sinal do seu osciloscópio.</p>
-                            </button>
+                    <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm relative overflow-hidden">
+                        {/* Wrench and Screw Animation */}
+                        <div className="h-28 w-28 relative flex items-center justify-center mb-8">
+                            <Hexagon className="h-14 w-14 text-gray-400 absolute fill-gray-200 dark:fill-gray-800" />
+                            <Wrench className="h-16 w-16 text-blue-600 dark:text-blue-500 absolute -top-2 -right-4 animate-tighten drop-shadow-md" style={{ transformOrigin: '15% 85%' }} />
                         </div>
-                    )}
-                </>
-            )}
-
-            {!result && activeType && (
-                <div className="space-y-4">
-                    <div className="rounded-xl border border-gray-200 bg-white p-4 lg:p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900 flex flex-col items-center text-center justify-center min-h-[300px] lg:min-h-[400px] border-dashed">
-                        {activeType === "osciloscopio" ? (
-                            <div className="flex h-16 w-16 lg:h-20 lg:w-20 items-center justify-center rounded-full bg-purple-50 dark:bg-purple-900/20 mb-2 relative">
-                                <div className="absolute inset-0 rounded-full border-4 border-purple-500/20 animate-ping"></div>
-                                <Activity className="h-10 w-10 text-purple-600 dark:text-purple-400 relative z-10" />
-                            </div>
-                        ) : (
-                            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 mb-2 relative">
-                                <div className="absolute inset-0 rounded-full border-4 border-blue-500/20 animate-ping"></div>
-                                <Cpu className="h-10 w-10 text-blue-600 dark:text-blue-400 relative z-10" />
-                            </div>
-                        )}
-
-                        <CameraUpload onResult={handleResult} type={activeType} contextVehicle={activeSessionVehicle} />
+                        
+                        <div className="w-full max-w-sm bg-gray-100 dark:bg-gray-800 h-3 rounded-full overflow-hidden mb-4">
+                            <div 
+                                className="h-full bg-blue-600 rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.5)]" 
+                                style={{ width: `${progress}%` }}
+                            ></div>
+                        </div>
+                        
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">A analisar sistemas...</h3>
                     </div>
                 </div>
             )}
+
+            <div className={isAnalyzing ? "hidden" : "space-y-10 w-full"}>
+                {!result && !activeType && !activeSessionVehicle && (
+                    <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 md:grid-cols-3">
+                        <button
+                            onClick={() => setActiveType("obd")}
+                            className="rounded-xl border border-gray-200 bg-white p-5 lg:p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 group flex flex-col text-left hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
+                        >
+                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30 mb-4 transition-transform group-hover:scale-110">
+                                <Search className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <h3 className="font-semibold text-lg mb-1">Inspeção Visual (Scanner)</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Use a câmera do seu dispositivo para captar e limpar reflexos de ecrãs de diagnóstico.</p>
+                        </button>
+
+                        <button
+                            onClick={() => setActiveType("obd")}
+                            className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 group flex flex-col text-left hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors"
+                        >
+                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30 mb-4 transition-transform group-hover:scale-110">
+                                <Cpu className="h-6 w-6 text-emerald-600 dark:text-emerald-500" />
+                            </div>
+                            <h3 className="font-semibold text-lg mb-1">Camada de Inteligência IA</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Extração estruturada de parâmetros com explicações técnicas de diagnóstico (Gemini).</p>
+                        </button>
+
+                        <button
+                            onClick={() => setActiveType("osciloscopio")}
+                            className="rounded-xl border border-purple-200 bg-white p-6 shadow-sm dark:border-purple-900/30 dark:bg-gray-900 group relative overflow-hidden flex flex-col text-left hover:border-purple-500 dark:hover:border-purple-500 transition-colors"
+                        >
+                            <div className="absolute -right-12 top-6 bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-500 dark:to-indigo-500 text-white text-[10px] font-bold px-12 py-1 rotate-45 shadow-sm tracking-wider z-10">
+                                ELITE
+                            </div>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30 mb-4 transition-transform group-hover:scale-110 relative z-0">
+                                <Activity className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <h3 className="font-semibold text-lg mb-1 relative z-0">Mestre de Osciloscópio</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 relative z-0">Interpretação IA avançada de formas de onda e sinais elétricos. Capte o sinal do seu osciloscópio.</p>
+                        </button>
+                    </div>
+                )}
+
+                {!result && activeType && (
+                    <div className="space-y-4">
+                        <div className="rounded-xl border border-gray-200 bg-white p-4 lg:p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900 flex flex-col items-center text-center justify-center min-h-[300px] lg:min-h-[400px] border-dashed">
+                            {activeType === "osciloscopio" ? (
+                                <div className="flex h-16 w-16 lg:h-20 lg:w-20 items-center justify-center rounded-full bg-purple-50 dark:bg-purple-900/20 mb-2 relative">
+                                    <div className="absolute inset-0 rounded-full border-4 border-purple-500/20 animate-ping"></div>
+                                    <Activity className="h-10 w-10 text-purple-600 dark:text-purple-400 relative z-10" />
+                                </div>
+                            ) : (
+                                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 mb-2 relative">
+                                    <div className="absolute inset-0 rounded-full border-4 border-blue-500/20 animate-ping"></div>
+                                    <Cpu className="h-10 w-10 text-blue-600 dark:text-blue-400 relative z-10" />
+                                </div>
+                            )}
+
+                            <CameraUpload onResult={handleResult} onProcessingStart={() => setIsAnalyzing(true)} type={activeType} contextVehicle={activeSessionVehicle} />
+                        </div>
+                    </div>
+                )}
 
             {/* Single Capture View (Post-Upload State) */}
             {result && !activeSessionVehicle && (
@@ -524,41 +523,8 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
                     {/* Render History from newest to oldest */}
                     {activeSessionRecords.length === 0 && !isAnalyzing && <p className="text-gray-500 text-center py-10">Inicie a análise utilizando o cartão acima.</p>}
                     
-                    {/* Analyzing Wrench Loading & Persistent Disclaimer */}
-                    {isAnalyzing && (
-                        <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-800 animate-in fade-in duration-500">
-                            <style>{`
-                              @keyframes tighten {
-                                0%, 100% { transform: rotate(0deg); }
-                                50% { transform: rotate(20deg); }
-                              }
-                              .animate-tighten {
-                                animation: tighten 1s ease-in-out infinite;
-                              }
-                            `}</style>
-                            <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-950 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm relative overflow-hidden">
-                                
-                                {/* Wrench and Screw Animation */}
-                                <div className="h-28 w-28 relative flex items-center justify-center mb-8">
-                                    <Hexagon className="h-14 w-14 text-gray-400 absolute fill-gray-200 dark:fill-gray-800" />
-                                    {/* The transform origin is adjusted so it pivots like a wrench on a nut */}
-                                    <Wrench className="h-16 w-16 text-blue-600 dark:text-blue-500 absolute -top-2 -right-4 animate-tighten drop-shadow-md" style={{ transformOrigin: '15% 85%' }} />
-                                </div>
-                                
-                                <div className="w-full max-w-sm bg-gray-100 dark:bg-gray-800 h-3 rounded-full overflow-hidden mb-4">
-                                    <div 
-                                        className="h-full bg-blue-600 rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.5)]" 
-                                        style={{ width: `${progress}%` }}
-                                    ></div>
-                                </div>
-                                
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">A analisar sistemas...</h3>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Technical Disclaimer Banner - Persistent across loading and results */}
-                    {(activeSessionRecords.length > 0 || isAnalyzing) && (
+                    {/* Technical Disclaimer Banner - Persistent across results */}
+                    {(activeSessionRecords.length > 0) && (
                         <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800/30 rounded-xl p-4 w-full flex items-start gap-4 mx-auto max-w-4xl animate-in slide-in-from-top-4 duration-500">
                             <AlertTriangle className="h-6 w-6 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
                             <div className="text-left">
@@ -610,6 +576,8 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
                     })}
                 </div>
             )}
+
+            </div>
 
             <p className="mt-8 pt-8 pb-8 text-center text-[10px] lg:text-xs font-medium text-gray-400 dark:text-gray-600 max-w-lg mx-auto">
                 AutoDiag AI. Uso exclusivo como ferramenta de apoio ao diagnóstico. A decisão técnica é da responsabilidade do mecânico.

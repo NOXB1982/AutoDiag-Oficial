@@ -25,11 +25,13 @@ export type DiagnosticResult = {
 
 interface CameraUploadProps {
     onResult: (result: DiagnosticResult) => void;
+    onProcessingStart?: () => void;
+    onProcessingEnd?: () => void;
     type?: "obd" | "osciloscopio";
     contextVehicle?: string | null;
 }
 
-export function CameraUpload({ onResult, type = "obd", contextVehicle = null }: CameraUploadProps) {
+export function CameraUpload({ onResult, onProcessingStart, onProcessingEnd, type = "obd", contextVehicle = null }: CameraUploadProps) {
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [isProcessing, setIsProcessing] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -39,6 +41,7 @@ export function CameraUpload({ onResult, type = "obd", contextVehicle = null }: 
         if (!file) return
 
         setIsProcessing(true)
+        if (onProcessingStart) onProcessingStart()
         setError(null)
 
         try {
@@ -49,6 +52,7 @@ export function CameraUpload({ onResult, type = "obd", contextVehicle = null }: 
             setError(err.message || "Ocorreu um erro ao processar a imagem. Confirme a GEMINI_API_KEY no .env.local")
         } finally {
             setIsProcessing(false)
+            if (onProcessingEnd) onProcessingEnd()
             if (fileInputRef.current) {
                 fileInputRef.current.value = "" // reset input
             }
