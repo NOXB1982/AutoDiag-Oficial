@@ -152,15 +152,17 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
         let timer: NodeJS.Timeout;
         if (isAnalyzing) {
             setProgress(0);
-            const startTime = Date.now();
-            const duration = 3000; // 3 seconds
-
             timer = setInterval(() => {
-                const elapsed = Date.now() - startTime;
-                const nextProgress = Math.min((elapsed / duration) * 100, 100);
-                setProgress(nextProgress);
-                if (nextProgress >= 100) clearInterval(timer);
-            }, 50);
+                setProgress(prev => {
+                    if (prev >= 100) return 100;
+                    if (prev < 90) {
+                        return Math.min(prev + 2, 90);
+                    } else if (prev < 99) {
+                        return Math.min(prev + 0.1, 99);
+                    }
+                    return prev;
+                });
+            }, 200);
         } else {
             setProgress(0);
         }
@@ -216,9 +218,12 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
             console.error(e)
         } finally {
             setIsSaving(false)
-            setIsAnalyzing(false)
-            // Ensure camera closes even on error
-            setActiveType(null);
+            setProgress(100)
+            setTimeout(() => {
+                setIsAnalyzing(false)
+                // Ensure camera closes even on error
+                setActiveType(null);
+            }, 500)
         }
     }
 
