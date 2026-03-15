@@ -14,6 +14,17 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "AutoDiag",
   },
+  icons: {
+    icon: [
+      { url: '/icon.png' },
+      new URL('/icon.png', 'https://autodiag.pt'),
+    ],
+    shortcut: ['/icon.png'],
+    apple: [
+      { url: '/icon.png' },
+      { url: '/icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 }
 
 export default function RootLayout({
