@@ -289,6 +289,11 @@ export function DiagnosticTableView({ result }: { result: DiagnosticResult }) {
                     </div>
                 )}
             </div>
+            
+            {/* Conversational AI Chat Module inside the Card */}
+            <div className="xl:col-span-3 w-full mt-4">
+                <DiagnosticChat diagnosticResult={result} />
+            </div>
         </div>
     )
 }
@@ -928,9 +933,6 @@ export function DashboardClient({ user, initialHistory = [] }: { user: { name?: 
                     {isSaving && <div className="text-sm text-gray-500 flex items-center gap-2 px-1 mb-4"><div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div> A guardar sessão db...</div>}
 
                     <DiagnosticTableView result={result} />
-                    
-                    {/* Conversational AI Chat Module */}
-                    <DiagnosticChat diagnosticResult={result} />
                 </div>
             )}
 
