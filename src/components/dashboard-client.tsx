@@ -28,8 +28,8 @@ export function DiagnosticTableView({ result }: { result: DiagnosticResult }) {
     const [isResumoExpanded, setIsResumoExpanded] = useState<boolean>(false);
 
     return (
-        <div className="grid gap-6 lg:grid-cols-3 items-start w-full">
-            <div className="lg:col-span-1 border border-gray-200 rounded-xl bg-white shadow-sm dark:bg-gray-950 dark:border-gray-800 p-5">
+        <div className="grid gap-6 xl:grid-cols-3 items-start w-full">
+            <div className="xl:col-span-1 border border-gray-200 rounded-xl bg-white shadow-sm dark:bg-gray-950 dark:border-gray-800 p-5">
                 <h3 className="font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4 text-lg">
                     <AlertTriangle className="h-5 w-5 text-red-500" /> Códigos de Erro (DTC)
                 </h3>
@@ -103,7 +103,7 @@ export function DiagnosticTableView({ result }: { result: DiagnosticResult }) {
                 </div>
             </div>
 
-            <div className="lg:col-span-2 border border-gray-200 rounded-xl bg-white shadow-sm dark:bg-gray-950 dark:border-gray-800 overflow-hidden">
+            <div className="xl:col-span-2 border border-gray-200 rounded-xl bg-white shadow-sm dark:bg-gray-950 dark:border-gray-800 overflow-hidden">
                 <div className="bg-gray-50 dark:bg-gray-900/50 px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
                     <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 text-base uppercase tracking-wider">
                         <Cpu className="h-4 w-4 text-gray-400" />

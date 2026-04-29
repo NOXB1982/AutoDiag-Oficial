@@ -63,7 +63,7 @@ Formato exigido:
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-3.1-pro-preview',
+            model: 'gemini-2.5-flash',
             contents: [prompt],
             config: { 
                 temperature: 0.1, 
@@ -72,7 +72,8 @@ Formato exigido:
         });
         
         const text = response.text || "{}";
-        const parsed = JSON.parse(text);
+        const cleanText = text.replace(/```json/i, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanText);
         return {
             marca: parsed.marca || "",
             modelo: parsed.modelo || "",

@@ -20,7 +20,7 @@ Responde estritamente em JSON:
 }`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-pro',
+            model: 'gemini-2.5-flash',
             contents: [
                 prompt,
                 {
@@ -40,7 +40,8 @@ Responde estritamente em JSON:
         if (!text) return { success: false, error: "A IA não conseguiu analisar a imagem." };
         
         try {
-            const parsed = JSON.parse(text);
+            const cleanText = text.replace(/```json/i, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(cleanText);
             if (parsed.vin && parsed.vin.length === 17) {
                 return { success: true, vin: parsed.vin };
             } else {
